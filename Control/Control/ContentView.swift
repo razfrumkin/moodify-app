@@ -9,11 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var context
-    @State private var selectedTab: Tab = .home
-
-    init() {
-        UITabBar.appearance().isHidden = true
-    }
+    @State private var selectedTab: Tab = .quotes
         
     var body: some View {
         ZStack {

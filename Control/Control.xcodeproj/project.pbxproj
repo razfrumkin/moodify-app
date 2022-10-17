@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		342818C528F9AD0E000C9BBF /* Quotes.csv in Resources */ = {isa = PBXBuildFile; fileRef = 342818C428F9AD0E000C9BBF /* Quotes.csv */; };
 		348AFF5128ECC8C000569B33 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 348AFF5028ECC8C000569B33 /* HomeView.swift */; };
 		348AFF5328ECC8D600569B33 /* QuotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 348AFF5228ECC8D600569B33 /* QuotesView.swift */; };
 		348AFF5528EDB53C00569B33 /* EntriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 348AFF5428EDB53C00569B33 /* EntriesView.swift */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		342818C428F9AD0E000C9BBF /* Quotes.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Quotes.csv; path = ../../Quotes.csv; sourceTree = "<group>"; };
 		348AFF5028ECC8C000569B33 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		348AFF5228ECC8D600569B33 /* QuotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotesView.swift; sourceTree = "<group>"; };
 		348AFF5428EDB53C00569B33 /* EntriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntriesView.swift; sourceTree = "<group>"; };
@@ -76,6 +78,7 @@
 		34EBE85328E0752B00DF12B7 /* Control */ = {
 			isa = PBXGroup;
 			children = (
+				342818C428F9AD0E000C9BBF /* Quotes.csv */,
 				348AFF4F28ECC8B400569B33 /* Views */,
 				34EBE85428E0752B00DF12B7 /* ControlApp.swift */,
 				34EBE85628E0752B00DF12B7 /* ContentView.swift */,
@@ -154,6 +157,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				34EBE85C28E0752C00DF12B7 /* Preview Assets.xcassets in Resources */,
+				342818C528F9AD0E000C9BBF /* Quotes.csv in Resources */,
 				34EBE85928E0752C00DF12B7 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

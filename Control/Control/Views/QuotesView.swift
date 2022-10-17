@@ -37,10 +37,10 @@ struct LikedQuotesView: View {
                 List {
                     ForEach(quotes) { quote in
                         if quote.isLiked {
-                            Text("\"\(quote.content ?? "Unresolved content")\"")
+                            Text("\"\(quote.content ?? "Unresolved quote")\"")
                                 .lineLimit(1)
                                 .onTapGesture {
-                                    detailedQuote = (quote.content ?? "Unresolved content", quote.author ?? "Unresolved author")
+                                    detailedQuote = (quote.content ?? "Unresolved quote", quote.author ?? "Unknown")
                                     showDetailedLikedQuote.toggle()
                                 }
                         }
@@ -82,7 +82,7 @@ struct QuotesView: View {
     var body: some View {
         NavigationView {
             VStack {
-                Button("First Launch Mode") {
+                Button("First Launch Mode (\(quotes.count) quotes)") {
                     for quote in quotes {
                         context.delete(quote)
                     }
@@ -90,11 +90,12 @@ struct QuotesView: View {
                     UserDefaults.standard.set(true, forKey: "firstLaunch")
                     prepopulateData(context: context)
                 }
+
                 VStack(alignment: .leading, spacing: 10) {
                     Text("\"\(quotes[quoteIndex].content ?? "Unresolved quote")\"")
                         .font(.title.weight(.semibold))
                         .foregroundColor(.pink.opacity(0.9))
-                    Text("- \(quotes[quoteIndex].author ?? "Unresolved author")")
+                    Text("- \(quotes[quoteIndex].author ?? "Unknown")")
                         .foregroundColor(.pink.opacity(0.6))
                         .font(.body.italic().bold())
                 }
