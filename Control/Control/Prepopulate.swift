@@ -14,10 +14,36 @@ func prepopulateData(context: NSManagedObjectContext) {
     
     if firstLaunch {
         prepopulateQuotes(context: context)
+        prepopulateActivites(context: context)
         
         firstLaunch = false
     } else {
         
+    }
+}
+
+func prepopulateActivites(context: NSManagedObjectContext) {
+    let defaultActivites = [
+        ("Running", "figure.run"),
+        ("Eating Healthy", "carrot.fill"),
+        ("Good Sleep", "bed.double.fill"),
+        ("Painting", "paintpalette.fill"),
+        ("Took Medication", "pill.fill"),
+        ("Television", "tv.fill"),
+        ("Music", "headphones"),
+        ("Shopping", "bag.fill")
+    ]
+    
+    for activity in defaultActivites {
+        let newActivity = Activity(context: context)
+        newActivity.title = activity.0
+        newActivity.systemName = activity.1
+        
+        do {
+            try context.save()
+        } catch {
+            fatalError("Unresolved CoreData error: Could not prepopulate activity data.")
+        }
     }
 }
 

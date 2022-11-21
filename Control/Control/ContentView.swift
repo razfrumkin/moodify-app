@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var context
-    @State private var selectedTab: Tab = .quotes
+    @State private var selectedTab: Tab = .home
         
     var body: some View {
         ZStack {

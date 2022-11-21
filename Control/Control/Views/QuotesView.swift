@@ -30,7 +30,7 @@ struct LikedQuotesView: View {
     
     @State private var showDetailedLikedQuote: Bool = false
     @State private var detailedQuote: (String, String) = ("", "")
-    
+        
     var body: some View {
         VStack {
             if atLeastOneLikedQuote() {
@@ -61,7 +61,7 @@ struct LikedQuotesView: View {
         })
     }
     
-    func atLeastOneLikedQuote() -> Bool {
+    private func atLeastOneLikedQuote() -> Bool {
         for quote in quotes {
             if quote.isLiked {
                 return true
@@ -76,13 +76,15 @@ struct QuotesView: View {
     @FetchRequest(sortDescriptors: []) private var quotes: FetchedResults<Quote>
     
     @State private var quoteIndex: Int = 0
-        
-    @State private var imageToggler: Bool = true
     
+    private let maximumLikedQuotes: Int = 50
+    @State private var likedQuotesCount: Int = 0
+    @State private var showMaximumLikedQuotesAlert = false
+            
     var body: some View {
         NavigationView {
             VStack {
-                Button("First Launch Mode (\(quotes.count) quotes)") {
+                Button("First Launch Mode (\(quotes.count) quote(s))") {
                     for quote in quotes {
                         context.delete(quote)
                     }
@@ -105,7 +107,6 @@ struct QuotesView: View {
                 HStack {
                     Button(action: {
                         withAnimation {
-                            imageToggler.toggle()
                             quoteIndex = randomQuoteIndex()
                         }
                     }, label: {
@@ -128,21 +129,51 @@ struct QuotesView: View {
                     .cornerRadius(15)
                     
                     Button(action: {
-                        withAnimation {
-                            quotes[quoteIndex].isLiked.toggle()
-                            do {
-                                try context.save()
-                            } catch {
-                                fatalError("Unresolved CoreData error: Could not toggle the like of the random quote")
-                            }                        }
+                        if quotes[quoteIndex].isLiked {
+                            withAnimation {
+                                quotes[quoteIndex].isLiked.toggle()
+                                
+                                do {
+                                    try context.save()
+                                    likedQuotesCount -= 1
+                                } catch {
+                                    fatalError("Unresolved CoreData error: Could not unlike the quote")
+                                }
+                            }
+                        } else if likedQuotesCount + 1 > maximumLikedQuotes {
+                            showMaximumLikedQuotesAlert = true
+                        } else {
+                            withAnimation {
+                                quotes[quoteIndex].isLiked.toggle()
+                                
+                                do {
+                                    try context.save()
+                                    likedQuotesCount += 1
+                                } catch {
+                                    fatalError("Unresolved CoreData error: Could not like the quote")
+                                }
+                            }
+                        }
                     }, label: {
                         Image(systemName: quotes[quoteIndex].isLiked ? "heart.fill" : "heart")
                             .foregroundColor(.pink)
                             .padding()
                     })
+                    .alert("You've hit the limit of liked quotes. (\(maximumLikedQuotes) quotes)", isPresented: $showMaximumLikedQuotesAlert) {
+                        Button("Ok", role: .cancel) {
+                            
+                        }
+                    }
                     .background(.pink.opacity(0.1))
                     .cornerRadius(15)
-                    
+                }
+            }
+            .onAppear {
+                likedQuotesCount = 0
+                for quote in quotes {
+                    if quote.isLiked {
+                        likedQuotesCount += 1
+                    }
                 }
             }
         }
@@ -151,7 +182,7 @@ struct QuotesView: View {
         }
     }
     
-    func randomQuoteIndex() -> Int {
+    private func randomQuoteIndex() -> Int {
         var randomInt = Int.random(in: quotes.startIndex..<(quotes.endIndex - 1))
         if randomInt == quoteIndex {
             randomInt = quotes.endIndex - 1
