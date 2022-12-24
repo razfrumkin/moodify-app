@@ -7,16 +7,26 @@
 
 import SwiftUI
 
+// view that allows the user to create a new entry
 struct NewEntryView: View {
+    @StateObject var viewRouter: ViewRouter
+    
     @Environment(\.managedObjectContext) private var context
     @FetchRequest(sortDescriptors: []) private var quotes: FetchedResults<Quote>
     @FetchRequest(sortDescriptors: []) private var activities: FetchedResults<Activity>
-        
+            
     @State private var selectedActivities: [Activity] = []
     
-    @Binding public var isActive: Bool
-    
+    @Binding var isActive: Bool
+        
     @State private var showSelectQuote: Bool = false
+    @State private var showNewActivityView: Bool = false
+    @State private var showModifyActivityDialog: Bool = false
+    @State private var showRenameActivityAlert: Bool = false
+    @State private var showDeleteActivityAlert: Bool = false
+    
+    @State private var selectedActivityToModify: Activity?
+    @State private var newPossibleActivityTitle: String = ""
     
     @State private var selectedQuote: Quote?
     @State private var mood: Double = 0.0
@@ -30,7 +40,7 @@ struct NewEntryView: View {
                     context.delete(activity)
                 }
                 try? context.save()
-                prepopulateActivites(context: context)
+                Utilities.prepopulateActivites(context: context)
             }
             ZStack {
                 Rectangle()
@@ -49,14 +59,14 @@ struct NewEntryView: View {
                             
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("\"\(selectedQuote!.content ?? "Unresolved quote")\"")
-                                    .font(.title.weight(.semibold))
                                     .foregroundColor(.white.opacity(0.9))
+                                    .font(.title.weight(.semibold))
                                     .multilineTextAlignment(.leading)
                                 Text("- \(selectedQuote!.author ?? "Unknown")")
                                     .foregroundColor(.white.opacity(0.6))
                                     .font(.body.italic().bold())
-                                    .multilineTextAlignment(.leading)
-                            }
+                                    .multilineTextAlignment(.leading)                            }
+                            .frame(maxWidth: .infinity)
                             .padding()
                             
                             Spacer()
@@ -70,25 +80,44 @@ struct NewEntryView: View {
                                     .foregroundColor(.white)
                             })
                         }
+                        .frame(maxWidth: .infinity)
                         .padding()
                     }
                 })
             }
+            
             VStack(alignment: .leading, spacing: 20) {
                 Group {
                     HStack {
                         Label("Add your mood", systemImage: "face.smiling.fill")
                             .foregroundColor(.pink)
-
-                        Text(String(Utilities.moodToEmoji(mood: Int(mood))))
+                        
+                        Image(Utilities.moodToIcon(mood: Int(mood)))
+                            .resizable()
+                            .renderingMode(.template)
+                            .foregroundColor(Utilities.moodToColor(mood: Int(mood)))
+                            .frame(width: 20, height: 20)
                     }
                     Slider(value: $mood, in: 0...Utilities.maximumMood, step: 1.0)
                         .accentColor(.purple)
                 }
                 
                 Group {
-                    Label("Select your activites", systemImage: "checkmark.circle.fill")
-                        .foregroundColor(.pink)
+                    HStack {
+                        Label("Select your activites", systemImage: "checkmark.circle.fill")
+                            .foregroundColor(.pink)
+                        Spacer()
+                        Button(action: {
+                            showNewActivityView = true
+                        }, label: {
+                            Image(systemName: "plus")
+                                .frame(width: 30, height: 30)
+                                .foregroundColor(.pink)
+                                .cornerRadius(15)
+                                .padding(.leading)
+                                .font(.title3)
+                        })
+                    }
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3)) {
                         ForEach(activities) { activity in
                             ActivityView(activity: activity) { isSelected in
@@ -97,6 +126,19 @@ struct NewEntryView: View {
                                 } else {
                                     selectedActivities.remove(at: selectedActivities.firstIndex(of: activity)!)
                                 }
+                            }
+                            .simultaneousGesture(LongPressGesture().onEnded { _ in
+                                selectedActivityToModify = activity
+                                showModifyActivityDialog = true
+                            })
+                        }
+                        .confirmationDialog("", isPresented: $showModifyActivityDialog) {
+                            Button("Rename") {
+                                newPossibleActivityTitle = selectedActivityToModify!.title!
+                                showRenameActivityAlert = true
+                            }
+                            Button("Delete", role: .destructive) {
+                                showDeleteActivityAlert = true
                             }
                         }
                     }
@@ -107,7 +149,7 @@ struct NewEntryView: View {
                         .foregroundColor(.pink)
                     TextField("Type your note here...", text: $note, axis: .vertical)
                         .font(.body)
-                        .accentColor(.pink)
+                        .accentColor(.purple)
                         .padding()
                         .background(.bar)
                         .cornerRadius(10)
@@ -154,7 +196,44 @@ struct NewEntryView: View {
                 }
             }
         }
-        .onAppear {            
+        .sheet(isPresented: $showNewActivityView) {
+            NewActivityView(isActive: $showNewActivityView)
+        }
+        .alert("Rename Activity", isPresented: $showRenameActivityAlert) {
+            TextField("Activity title here...", text: $newPossibleActivityTitle)
+            
+            Button("Proceed") {
+                selectedActivityToModify!.title = newPossibleActivityTitle
+                                                    
+                do {
+                    try context.save()
+                } catch {
+                    fatalError("Unresolved CoreData error: Could not rename the activity's title")
+                }
+                
+                newPossibleActivityTitle = ""
+            }
+            Button("Cancel", role: .cancel) {
+                newPossibleActivityTitle = ""
+            }
+        }
+        .alert("Delete Activity", isPresented: $showDeleteActivityAlert, actions: {
+            Button("Delete", role: .destructive) {
+                context.delete(selectedActivityToModify!)
+                
+                do {
+                    try context.save()
+                } catch {
+                    fatalError("Unresolved CoreData error: Could not delete the activity")
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                
+            }
+        }, message: {
+            Text("Are you sure you want to delete this activity? Deleting this activity will delete every instance of this activity from every entry.")
+        })
+        .onAppear {
             selectedQuote = nil
             mood = 0
             note = ""
@@ -162,6 +241,7 @@ struct NewEntryView: View {
         }
     }
     
+    // this function creates a new entry in the database
     private func saveEntry() {
         let entry = Entry(context: context)
         
@@ -171,11 +251,17 @@ struct NewEntryView: View {
         
         for selectedActivity in selectedActivities {
             entry.addToActivities(selectedActivity)
+            do {
+                try context.save()
+            } catch {
+                fatalError("Unresolved CoreData error: Could not add activities")
+            }
         }
         
-        if note.isEmpty {
+        if !note.isEmpty {
             entry.note = note
         }
+        
         entry.isProductive = isProductive
         
         do {
@@ -185,6 +271,7 @@ struct NewEntryView: View {
         }
     }
     
+    // checks if the user has liked at least one quote
     private func atLeastOneLikedQuote() -> Bool {
         for quote in quotes {
             if quote.isLiked {
@@ -199,7 +286,7 @@ struct NewEntryView_Previews: PreviewProvider {
     static var previews: some View {
         let persistenceContainer = PersistenceController.shared
         
-        NewEntryView(isActive: .constant(true))
+        NewEntryView(viewRouter: ViewRouter(), isActive: .constant(true))
             .environment(\.managedObjectContext, persistenceContainer.container.viewContext)
     }
 }

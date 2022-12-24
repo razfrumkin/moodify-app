@@ -7,41 +7,40 @@
 
 import SwiftUI
 
+// renders an activity as a label
 struct ActivityView: View {
-    public var activity: Activity
-    @State public var isSelected: Bool = false
-    public var onToggle: (_ isSelected: Bool) -> Void
+    let activity: Activity
+    @State var isSelected: Bool = false
+    let onToggle: (_ isSelected: Bool) -> Void
         
     @ViewBuilder private var label: some View {
         if isSelected {
-            HStack {
-                Image(systemName: activity.systemName ?? "x.circle.fill")
-                Text(activity.title ?? "Unresolved Title")
-            }
+            Label(activity.title ?? "Unresolved Activity", systemImage: activity.systemName ?? "x.circle.fill")
             .frame(width: 125, height: 30)
             .background(.purple)
             .foregroundColor(.white)
         } else {
-            HStack {
-                Image(systemName: activity.systemName ?? "x.circle.fill")
-                Text(activity.title ?? "Unresolved Title")
-            }
-            .frame(width: 125, height: 30)
-            .background(.bar)
-            .foregroundColor(.gray)
+            Label(activity.title ?? "Unresolved Activity", systemImage: activity.systemName ?? "x.circle.fill")
+                .frame(width: 125, height: 30)
+                .background(.bar)
+                .foregroundColor(.gray)
         }
     }
     
     var body: some View {
         Button(action: {
+            
+        }, label: {
+            label
+                .lineLimit(1)
+                .font(.caption)
+                .cornerRadius(5)
+        })
+        .simultaneousGesture(TapGesture().onEnded {
             withAnimation {
                 isSelected.toggle()
                 onToggle(isSelected)
             }
-        }, label: {
-            label
-                .font(.caption)
-                .cornerRadius(5)
         })
     }
 }
