@@ -17,7 +17,7 @@ struct ActivityView: View {
         if isSelected {
             Label(activity.title ?? "Unresolved Activity", systemImage: activity.systemName ?? "x.circle.fill")
             .frame(width: 125, height: 30)
-            .background(.purple)
+            .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
             .foregroundColor(.white)
         } else {
             Label(activity.title ?? "Unresolved Activity", systemImage: activity.systemName ?? "x.circle.fill")

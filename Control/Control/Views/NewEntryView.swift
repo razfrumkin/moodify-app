@@ -29,7 +29,7 @@ struct NewEntryView: View {
     @State private var newPossibleActivityTitle: String = ""
     
     @State private var selectedQuote: Quote?
-    @State private var mood: Double = 0.0
+    @State private var mood: Double = Entry.maximumMood / 2.0
     @State private var note: String = ""
     @State private var isProductive: Bool = false
         
@@ -40,11 +40,11 @@ struct NewEntryView: View {
                     context.delete(activity)
                 }
                 try? context.save()
-                Utilities.prepopulateActivites(context: context)
+                context.prepopulateActivites()
             }
             ZStack {
                 Rectangle()
-                    .fill(.purple)
+                    .fill(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(height: 400)
                 Button(action: {
                     showSelectQuote = true
@@ -89,31 +89,31 @@ struct NewEntryView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Group {
                     HStack {
-                        Label("Add your mood", systemImage: "face.smiling.fill")
-                            .foregroundColor(.pink)
+                        Label("Add your mood", systemImage: "face.smiling")
+                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                        Spacer()
                         
-                        Image(Utilities.moodToIcon(mood: Int(mood)))
+                        Image(Entry.moodToIcon(mood: Int(mood)))
                             .resizable()
                             .renderingMode(.template)
-                            .foregroundColor(Utilities.moodToColor(mood: Int(mood)))
+                            .foregroundColor(Entry.moodToColor(mood: Int(mood)))
                             .frame(width: 20, height: 20)
                     }
-                    Slider(value: $mood, in: 0...Utilities.maximumMood, step: 1.0)
-                        .accentColor(.purple)
+                    Slider(value: $mood, in: 0...Entry.maximumMood, step: 1.0)
+                        .tint(Entry.moodToColor(mood: Int(mood)))
                 }
                 
                 Group {
                     HStack {
                         Label("Select your activites", systemImage: "checkmark.circle.fill")
-                            .foregroundColor(.pink)
+                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
                         Spacer()
                         Button(action: {
                             showNewActivityView = true
                         }, label: {
                             Image(systemName: "plus")
                                 .frame(width: 30, height: 30)
-                                .foregroundColor(.pink)
-                                .cornerRadius(15)
+                                .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)                                .cornerRadius(15)
                                 .padding(.leading)
                                 .font(.title3)
                         })
@@ -146,10 +146,9 @@ struct NewEntryView: View {
                 
                 Group {
                     Label("Add a daily note", systemImage: "square.text.square.fill")
-                        .foregroundColor(.pink)
+                        .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
                     TextField("Type your note here...", text: $note, axis: .vertical)
                         .font(.body)
-                        .accentColor(.purple)
                         .padding()
                         .background(.bar)
                         .cornerRadius(10)
@@ -157,10 +156,17 @@ struct NewEntryView: View {
                 }
                 
                 Group {
-                    Toggle("Was this day productive?", isOn: $isProductive)
-                        .toggleStyle(.switch)
-                        .foregroundColor(.pink)
-                        .tint(.purple)
+                    HStack {
+                        Label("Was this day productive?", systemImage: "bolt.fill")
+                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $isProductive)
+                            .toggleStyle(.switch)
+                            .fixedSize()
+                            .tint(.accentColor)
+                    }
                 }
             }
             .padding()
@@ -172,13 +178,12 @@ struct NewEntryView: View {
             .padding()
             .foregroundColor(.white)
             .frame(width: 200, height: 50)
-            .background(.purple)
+            .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
             .cornerRadius(10)
         }
-        .navigationTitle("New Entry")
         .sheet(isPresented: $showSelectQuote) {
             VStack {
-                if atLeastOneLikedQuote() {
+                if quotes.atLeastOneLikedQuote {
                     List {
                         ForEach(quotes) { quote in
                             if quote.isLiked {
@@ -269,16 +274,6 @@ struct NewEntryView: View {
         } catch {
             fatalError("Unresolved CoreData error: Could not save entry data")
         }
-    }
-    
-    // checks if the user has liked at least one quote
-    private func atLeastOneLikedQuote() -> Bool {
-        for quote in quotes {
-            if quote.isLiked {
-                return true
-            }
-        }
-        return false
     }
 }
 

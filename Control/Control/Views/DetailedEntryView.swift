@@ -9,20 +9,20 @@ import SwiftUI
 
 // renders a given entry in detail
 struct DetailedEntryView: View {
+    @Environment(\.managedObjectContext) private var context
+
     @Binding var entry: Entry?
     
     @State private var selectedQuote: Quote?
+    @State private var selectedDailyAppearance: DailyAppearance?
     @State private var showDetailedLikedQuote: Bool = false
+    @State private var showDailyAppearance: Bool = false
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                let icon = Utilities.moodToIcon(mood: Int(entry!.mood))
-                let header = Utilities.moodToHeader(mood: Int(entry!.mood))
-                let color = Utilities.moodToColor(mood: Int(entry!.mood))
-
                 HStack {
-                    Image(icon)
+                    Image(entry!.icon)
                         .resizable()
                         .renderingMode(.template)
                         .foregroundColor(.white)
@@ -30,7 +30,7 @@ struct DetailedEntryView: View {
                                 70)
                     
                     VStack(alignment: .leading) {
-                        Text(header)
+                        Text(entry!.header)
                             .font(.title)
                             .bold()
                             .foregroundColor(.white)
@@ -49,7 +49,7 @@ struct DetailedEntryView: View {
                 }
                 .padding(.all, 25)
                 .padding(.vertical, 20)
-                .background(color)
+                .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
                 
                 if entry!.activities != nil && entry!.activities!.count > 0 {
                     VStack(alignment: .leading, spacing: 10) {
@@ -65,7 +65,7 @@ struct DetailedEntryView: View {
                                         .font(.title3)
                                         .foregroundColor(.white)
                                         .frame(width: 200, height: 60)
-                                        .background(color)
+                                        .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
                                         .cornerRadius(10)
                                 }
                             }
@@ -81,10 +81,9 @@ struct DetailedEntryView: View {
                             .bold()
                         
                         Text(entry!.note!)
-                            .foregroundColor(.black)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
                             .padding()
-                            .background(.bar)
+                            .background(Color.theme.secondaryBackground)
                             .cornerRadius(30)
                             .textSelection(.enabled)
                     }
@@ -106,7 +105,7 @@ struct DetailedEntryView: View {
                                 .font(.body.italic().bold())
                         }
                         .padding()
-                        .background(color)
+                        .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
                         .cornerRadius(15)
                     }
                     .padding()
@@ -116,12 +115,40 @@ struct DetailedEntryView: View {
                     }
                 }
                 
+                let appearance = context.dailyAppearance(from: entry!.date!)
+                if appearance != nil {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Daily Challenge")
+                            .font(.title)
+                            .bold()
+                        
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(appearance!.dailyChallenge!.content!)
+                                .font(.title.weight(.semibold))
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                        .padding()
+                        .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .cornerRadius(15)
+                    }
+                    .padding()
+                    .onTapGesture {
+                        selectedDailyAppearance = appearance
+                        showDailyAppearance = true
+                    }
+                }
+                
                 Spacer()
             }
             .sheet(isPresented: $showDetailedLikedQuote) {
                 DetailedQuoteView(quote: $selectedQuote, contentColor: .white.opacity(0.9), authorColor: .white.opacity(0.6))
-                    .background(Utilities.moodToColor(mood: Int(entry!.mood)))
+                    .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+            }
+            .sheet(isPresented: $showDailyAppearance) {
+                DailyAppearanceView(appearance: $selectedDailyAppearance)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.theme.background)
     }
 }

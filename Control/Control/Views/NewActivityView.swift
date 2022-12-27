@@ -14,6 +14,9 @@ struct NewActivityView: View {
     
     @Binding var isActive: Bool
     
+    let minimumNameLength: Int = 3
+    let maximumNameLength: Int = 15
+    
     @State private var showAlert: Bool = false
         
     @State private var activitySystemImage: String = ""
@@ -49,24 +52,23 @@ struct NewActivityView: View {
                         VStack(alignment: .leading) {
                             Text(key)
                                 .font(.title.bold())
-                                .foregroundColor(.pink)
+                                .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 20) {
                                 ForEach(images[key]!, id: \.self) { image in
                                     let imageExists = activityImageExists(systemName: image)
-                                    Button(action: {
-                                        if !imageExists {
-                                            activitySystemImage = image
-                                            showAlert = true
+                                    Image(systemName: image)
+                                        .scaleEffect(1.2)
+                                        .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                                        .frame(width: 50, height: 50)
+                                        .background(.linearGradient(colors: Utilities.gradient.map { $0.opacity(0.2) }, startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .cornerRadius(20)
+                                        .saturation(imageExists ? 0.1 : 1)
+                                        .onTapGesture {
+                                            if !imageExists {
+                                                activitySystemImage = image
+                                                showAlert = true
+                                            }
                                         }
-                                    }, label: {
-                                        Image(systemName: image)
-                                            .scaleEffect(1.2)
-                                            .foregroundColor(.purple)
-                                            .frame(width: 50, height: 50)
-                                            .background(.purple.opacity(0.2))
-                                            .cornerRadius(20)
-                                            .saturation(imageExists ? 0.1 : 1)
-                                    })
                                 }
                             }
                         }
@@ -78,7 +80,7 @@ struct NewActivityView: View {
                 TextField("Activity title here...", text: $activityTitle)
                 
                 Button("Create") {
-                    if activityTitle.count >= Utilities.minimumActivityNameLength && activityTitle.count <= Utilities.maximumActivityNameLength {
+                    if activityTitle.count >= minimumNameLength && activityTitle.count <= maximumNameLength {
                         let newActivity = Activity(context: context)
                         
                         newActivity.systemName = activitySystemImage
@@ -103,7 +105,7 @@ struct NewActivityView: View {
                     activityTitle = ""
                 }
             }, message: {
-                Text("Activity title must be within \(Utilities.minimumActivityNameLength) to \(Utilities.maximumActivityNameLength) characters")
+                Text("Activity title must be within \(minimumNameLength) to \(maximumNameLength) characters")
             })
             .alert("Inavlid Activity Title", isPresented: $activityTitleError, actions: {
                 Button("Okay", role: .cancel) {
@@ -111,14 +113,14 @@ struct NewActivityView: View {
                     activityTitle = ""
                 }
             }, message: {
-                Text("\"\(activityTitle)\" is not within \(Utilities.minimumActivityNameLength) to \(Utilities.maximumActivityNameLength) characters")
+                Text("\"\(activityTitle)\" is not within \(minimumNameLength) to \(maximumNameLength) characters")
             })
             .navigationTitle("New Activity")
         }
     }
     
     // checks if a given systemName exists as an activity
-    func activityImageExists(systemName: String) -> Bool {
+    private func activityImageExists(systemName: String) -> Bool {
         for activity in existingActivities {
             if systemName == activity.systemName! {
                 return true

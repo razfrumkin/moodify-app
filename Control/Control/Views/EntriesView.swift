@@ -12,30 +12,27 @@ import CoreData
 struct EntryView: View {
     @Environment(\.managedObjectContext) private var context
     
+    private let maximumPreviewActivities: Int = 3
+
     let entry: Entry
         
     var body: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 20)
-                .fill(.white)
-                .shadow(color: .black.opacity(0.1), radius: 2, y: 5)
+                .fill(Color.theme.secondaryBackground)
             VStack(alignment: .leading) {
-                let icon = Utilities.moodToIcon(mood: Int(entry.mood))
-                let color = Utilities.moodToColor(mood: Int(entry.mood))
-                let header = Utilities.moodToHeader(mood: Int(entry.mood))
-                let dateTimeString = Utilities.formattedDateTime(from: entry.date)
+                let dateTimeString = Time.shared.formattedDateTime(from: entry.date)
                 
                 HStack() {
-                    Image(icon)
+                    Image(entry.icon)
                         .resizable()
                         .renderingMode(.template)
-                        .foregroundColor(color)
+                        .foregroundColor(entry.color)
                         .frame(width: 40, height: 40)
                     VStack(alignment: .leading) {
-                        Text(header)
+                        Text(entry.header)
                             .font(.title2)
                             .bold()
-                            .foregroundColor(.black)
                         Text("\(dateTimeString.0) • \(dateTimeString.1)")
                             .font(.caption).foregroundColor(.gray)
                     }
@@ -64,7 +61,7 @@ struct EntryView: View {
                         }
                     }
                     
-                    let activitiesNotShownInPreviewCount = entry.activities!.count - Utilities.maximumPreviewActivities
+                    let activitiesNotShownInPreviewCount = entry.activities!.count - maximumPreviewActivities
                     
                     if activitiesNotShownInPreviewCount > 0 {
                         Text("And \(activitiesNotShownInPreviewCount) more")
@@ -83,7 +80,7 @@ struct EntryView: View {
         var activities: [Activity] = []
         var index = 0
         for activity in entry.activities! {
-            if index == Utilities.maximumPreviewActivities {
+            if index == maximumPreviewActivities {
                 return activities
             }
             
@@ -119,8 +116,10 @@ struct EntriesView: View {
                 let quotes = try? context.fetch(Quote.fetchRequest())
                 let activities = try? context.fetch(Activity.fetchRequest())
                 
-                for index in 1...100 {
-                    if index == 50 { continue } // debugging
+                let letters = " abcd efghi jklmn opqr stuv wxyz "
+                
+                for index in 1...400 {
+                    if Int.random(in: 0...4) == 4 { continue }
                     let entry = Entry(context: context)
                     entry.quote = quotes!.randomElement()!
                     entry.mood = .random(in: 0...99)
@@ -129,7 +128,12 @@ struct EntriesView: View {
                         entry.addToActivities(activity)
                         try? context.save()
                     }
-                    entry.note = "an dij nk cj fwkj en fe \nwnf uwn uwen uew fnuwef \nnfuwenu ewnun weufn ifnwi idjnsid k kwn dihn ishwi eubihds ij didsj nisj ne"
+                    let length = Int.random(in: 10...200)
+                    var note = ""
+                    for _ in 0..<length {
+                        note += String(letters.randomElement()!)
+                    }
+                    entry.note = note
                     entry.isProductive = .random()
                     entry.date = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Calendar.current.date(byAdding: .day, value: 1 - index, to: .now)!)
                     try? context.save()
@@ -167,9 +171,11 @@ struct EntriesView: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .background(.bar)
+        .edgesIgnoringSafeArea(.bottom)
+        .background(Color.theme.background)
         .sheet(isPresented: $showDetailedEntryView) {
             DetailedEntryView(entry: $selectedEntry)
+                .environment(\.managedObjectContext, context)
                 .presentationDetents([.large, .fraction(0.75)])
         }
         .alert("Delete Entry", isPresented: $showDeleteEntryDialog, actions: {

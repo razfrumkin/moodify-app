@@ -19,8 +19,10 @@ enum Tab {
 // this class tells which tab to use and whether to show the tab bar
 class ViewRouter: ObservableObject {
     @Published var currentTab: Tab = .home
-    @Published var showTabBar: Bool = true
     
+    @Published var isNewEntryViewActive: Bool = false
+    @Published var isEntriesViewActive: Bool = false
+
     @Published var statsViewDayRange: DayRangeType = .sevenDays
 }
 
@@ -32,21 +34,36 @@ struct TabBarIcon: View {
     let systemName: String
     let title: String
     
+    var namespace: Namespace.ID
+        
     var body: some View {
-        VStack(spacing: 5) {
-            let isSelected = tab == viewRouter.currentTab
-            Image(systemName: "\(systemName)\(isSelected ? ".fill" : "")")
-                .scaleEffect(isSelected ? 1.1 : 1)
-                .foregroundColor(isSelected ? .pink : .gray)
-                .font(.system(size: 22))
-            Text(title)
-                .scaleEffect(isSelected ? 1.1 : 1)
-                .foregroundColor(isSelected ? .pink : .gray)
-                .font(.system(size: 10))
+        let isSelected = tab == viewRouter.currentTab
+        VStack(spacing: 20) {
+            if isSelected {
+                Rectangle()
+                    .fill(.linearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing))
+                    .frame(width: 30, height: 3)
+                    .matchedGeometryEffect(id: "tabBarSelectedHorizontalLine", in: namespace)
+            } else {
+                Rectangle()
+                    .fill(.clear)
+                    .frame(width: 30, height: 3)
+            }
+            VStack(spacing: 5) {
+                Image(systemName: "\(systemName)\(isSelected ? ".fill" : "")")
+                    .scaleEffect(isSelected ? 1.1 : 1)
+                    .font(.system(size: 22))
+                                
+                Text(title)
+                    .scaleEffect(isSelected ? 1.1 : 1)
+                    .font(.system(size: 10))
+            }
+            .frame(alignment: .bottom)
         }
-        .padding()
+        .foregroundLinearGradient(colors: isSelected ? Utilities.gradient : [.gray], startPoint: .topLeading, endPoint: .bottomTrailing)
+        .padding(.horizontal)
         .onTapGesture {
-            withAnimation(.easeIn(duration: 0.1)) {
+            withAnimation(.easeIn(duration: 0.25)) {
                 viewRouter.currentTab = tab
             }
         }
@@ -56,26 +73,34 @@ struct TabBarIcon: View {
 // tab bar of ContentView
 struct TabBar: View {
     @StateObject var viewRouter: ViewRouter
+    
+    @Namespace private var namespace
+    
+    static let height: CGFloat = 115
         
     var body: some View {
-        VStack {
-            HStack {
-                Spacer()
-                TabBarIcon(viewRouter: viewRouter, tab: .home, systemName: "house", title: "Home")
-                Spacer()
-                TabBarIcon(viewRouter: viewRouter, tab: .stats, systemName: "chart.bar", title: "Stats")
-                Spacer()
-                TabBarIcon(viewRouter: viewRouter, tab: .quotes, systemName: "lightbulb", title: "Quotes")
-                Spacer()
-                TabBarIcon(viewRouter: viewRouter, tab: .settings, systemName: "gear.circle", title: "Settings")
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, maxHeight: 80, alignment: .top)
-            .padding(.top, 10)
-            .background(.white)
-            .cornerRadius(16)
+        HStack {
+            Spacer()
+            TabBarIcon(viewRouter: viewRouter, tab: .home, systemName: "house", title: "Home", namespace: namespace)
+            Spacer()
+            TabBarIcon(viewRouter: viewRouter, tab: .stats, systemName: "chart.bar", title: "Stats", namespace: namespace)
+            Spacer()
+            TabBarIcon(viewRouter: viewRouter, tab: .quotes, systemName: "lightbulb", title: "Quotes", namespace: namespace)
+            Spacer()
+            TabBarIcon(viewRouter: viewRouter, tab: .settings, systemName: "gear.circle", title: "Settings", namespace: namespace)
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: Self.height, alignment: .top)
         .ignoresSafeArea()
+    }
+}
+
+// put this where the tabbar occupies space from the view
+struct MakeSpaceForTabBar: View {
+    var body: some View {
+        Rectangle()
+            .fill(.clear)
+            .frame(height: TabBar.height)
     }
 }
 
@@ -296,46 +321,73 @@ struct RequestNotificationView: View {
 struct ContentView: View {
     @StateObject var viewRouter: ViewRouter
     
+    @AppStorage("schemeType") private var schemeType: SchemeType = .light
+    
     @State private var showWelcomeAnimation: Bool = false
     
     @Environment(\.managedObjectContext) private var context
         
     var body: some View {
-        VStack {
-            switch viewRouter.currentTab {
-            case .home:
-                HomeView(viewRouter: viewRouter)
-                    .environment(\.managedObjectContext, context)
-            case .stats:
-                StatsView(viewRouter: viewRouter)
-                    .environment(\.managedObjectContext, context)
-            case .quotes:
-                QuotesView(viewRouter: viewRouter)
-                    .environment(\.managedObjectContext, context)
-            case .settings:
-                SettingsView(viewRouter: viewRouter)
-                    .environment(\.managedObjectContext, context)
+        NavigationView {
+            ZStack {
+                switch viewRouter.currentTab {
+                case .home:
+                    HomeView(viewRouter: viewRouter)
+                        .environment(\.managedObjectContext, context)
+                case .stats:
+                    StatsView(viewRouter: viewRouter)
+                        .environment(\.managedObjectContext, context)
+                case .quotes:
+                    QuotesView(viewRouter: viewRouter)
+                        .environment(\.managedObjectContext, context)
+                case .settings:
+                    SettingsView(viewRouter: viewRouter)
+                        .environment(\.managedObjectContext, context)
+                }
+                
+                VStack {
+                    Spacer()
+                    
+                    TabBar(viewRouter: viewRouter)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(35)
+                }
+                
+                // nav links here
+                NavigationLink(destination: NewEntryView(viewRouter: viewRouter, isActive: $viewRouter.isNewEntryViewActive)
+                    .padding(.bottom)
+                    .environment(\.managedObjectContext, context), isActive: $viewRouter.isNewEntryViewActive) {
+                    }
+                
+                NavigationLink(destination: EntriesView(viewRouter: viewRouter)
+                    .environment(\.managedObjectContext, context), isActive: $viewRouter.isEntriesViewActive) {
+                        
+                    }
             }
-            
-            if viewRouter.showTabBar {
-                TabBar(viewRouter: viewRouter)
+            .sheet(isPresented: $showWelcomeAnimation) {
+                TabView {
+                    WelcomeView()
+                    IntroductionView()
+                    RequestNotificationView()
+                }
+                .tabViewStyle(.page)
+                .indexViewStyle(.page(backgroundDisplayMode: .always))
             }
-        }
-        .sheet(isPresented: $showWelcomeAnimation) {
-            TabView {
-                WelcomeView()
-                IntroductionView()
-                RequestNotificationView()
+            .onAppear {
+                Utilities.changeColorScheme(scheme: schemeType.colorScheme)
+                if UserDefaults.standard.bool(forKey: "firstLaunch") {
+                    showWelcomeAnimation = true
+                }
+                
+                UserDefaults.standard.set(false, forKey: "firstLaunch")
+                
+                if ExternalData.shared.launchedViaEntryReminderNotification {
+                    ExternalData.shared.launchedViaEntryReminderNotification = false
+                    viewRouter.isNewEntryViewActive = true
+                }
             }
-            .tabViewStyle(.page)
-            .indexViewStyle(.page(backgroundDisplayMode: .always))
-        }
-        .onAppear {
-            if UserDefaults.standard.bool(forKey: "firstLaunch") {
-                showWelcomeAnimation = true
-            }
-            
-            UserDefaults.standard.set(false, forKey: "firstLaunch")
+            .preferredColorScheme(schemeType.colorScheme)
+            .edgesIgnoringSafeArea(.bottom)
         }
     }
 }

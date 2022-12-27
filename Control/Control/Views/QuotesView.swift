@@ -41,7 +41,7 @@ struct LikedQuotesView: View {
         
     var body: some View {
         VStack {
-            if atLeastOneLikedQuote() {
+            if quotes.atLeastOneLikedQuote {
                 List {
                     ForEach(quotes) { quote in
                         if quote.isLiked {
@@ -65,20 +65,9 @@ struct LikedQuotesView: View {
                 Text("You haven't liked any quotes yet")
             }
         }
-        .navigationTitle("Liked Quotes")
         .sheet(isPresented: $showDetailedLikedQuote, content: {
             DetailedQuoteView(quote: $detailedQuote, contentColor: .pink.opacity(0.9), authorColor: .pink.opacity(0.6))
         })
-    }
-    
-    // checks if the user has liked at least one quote
-    private func atLeastOneLikedQuote() -> Bool {
-        for quote in quotes {
-            if quote.isLiked {
-                return true
-            }
-        }
-        return false
     }
 }
 
@@ -89,22 +78,22 @@ struct QuotesView: View {
     @Environment(\.managedObjectContext) private var context
     @FetchRequest(sortDescriptors: []) private var quotes: FetchedResults<Quote>
     
-    @State private var quoteIndex: Int = 0
-    
     private let maximumLikedQuotes: Int = 10
+    
+    @State private var quoteIndex: Int = 0
     @State private var likedQuotesCount: Int = 0
     @State private var showMaximumLikedQuotesAlert = false
             
     var body: some View {
         NavigationView {
             VStack {
-                /*Button("First Launch Mode (\(quotes.count) quote(s))") {
+                /*Button("PREPOPULATE | (\(quotes.count) quote(s))") {
                     for quote in quotes {
                         context.delete(quote)
                     }
                     try? context.save()
                     UserDefaults.standard.set(true, forKey: "firstLaunch")
-                    prepopulateData(context: context)
+                    context.prepopulateQuotesData()
                 }*/
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -183,6 +172,8 @@ struct QuotesView: View {
                     .cornerRadius(15)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.theme.background)
             .onAppear {
                 likedQuotesCount = 0
                 for quote in quotes {
@@ -193,7 +184,7 @@ struct QuotesView: View {
             }
         }
         .onAppear {
-            quoteIndex = Int.random(in: quotes.startIndex..<quotes.endIndex)
+            quoteIndex = .random(in: quotes.startIndex..<quotes.endIndex)
         }
     }
     

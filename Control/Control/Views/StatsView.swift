@@ -46,8 +46,6 @@ struct PieChartView: View {
             
             PieChartRows(colors: colors, titles: titles, values: values.map { String($0) }, percents: values.map { $0 * 100 / sum })
         }
-        .background(.white)
-        .foregroundColor(.white)
     }
 }
 
@@ -67,7 +65,6 @@ struct PieChartRows: View {
                         .frame(width: 10, height: 10)
                         .padding(.horizontal, 5)
                     Text(titles[index])
-                        .foregroundColor(.black)
                     Text(String(format: "%.0f%%", percents[index]))
                         .foregroundColor(.gray)
                 }
@@ -79,6 +76,8 @@ struct PieChartRows: View {
 
 // renders a slice from a pie chart
 struct PieSliceView: View {
+    private let minimumPercentageToShowHeader: Double = 5.0
+    
     let data: PieSliceData
     
     private var midRadians: Double {
@@ -101,10 +100,10 @@ struct PieSliceView: View {
                 .fill(data.color)
                 
                 // if the value is smaller than the minimum percentage to show, don't render the text
-                if data.value >= Utilities.minimumPercentageShow {
+                if data.value >= minimumPercentageToShowHeader {
                     Text(String(format: "%.0f%%", data.value))
                         .position(x: geometry.size.width / 2 * CGFloat(1 + 0.78 * cos(midRadians)), y: geometry.size.height / 2 * CGFloat(1 - 0.78 * sin(midRadians)))
-                        .foregroundColor(.white)
+                        .foregroundColor(.theme.background)
                 }
             }
         }
@@ -127,7 +126,7 @@ enum DayRangeType: String, CaseIterable {
     case month = "Last Month"
     
     // converts the enum to number of days
-    func dayCount() -> Int {
+    var dayCount: Int {
         switch self {
         case .sevenDays:
             return 7
@@ -181,11 +180,13 @@ struct MoodGraphView: View {
     
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
     
+    private let maximumDaysToShowXAxis: Int = 8
+    
     @State private var graphInterpolation: GraphInterpolation = .curvy
 
     var body: some View {
-        let days = viewRouter.statsViewDayRange.dayCount()
-        let moods = Utilities.lastMoods(total: days, entries: entries)
+        let days = viewRouter.statsViewDayRange.dayCount
+        let moods = entries.lastMoods(dayRange: days)
         
         VStack {
             HStack {
@@ -200,49 +201,56 @@ struct MoodGraphView: View {
                 
                 Spacer()
                                 
-                let averageMoodPerDay = Utilities.averageMoodPerDay(moods: moods)
-                let color = Utilities.moodToColor(mood: Int(averageMoodPerDay))
+                let averageMoodPerDay = Statistics.shared.averageMoodPerDay(moods: moods)
+                let color = Entry.moodToColor(mood: Int(averageMoodPerDay))
                 HStack {
                     Text("Average mood:")
-                    Text(Utilities.moodToHeader(mood: Int(averageMoodPerDay)))
+                    Text(Entry.moodToHeader(mood: Int(averageMoodPerDay)))
                         .foregroundColor(color)
                         .bold()
                 }
                 .cornerRadius(10)
                 
                 Spacer()
-                
-                Button(action: {
-                    // TODO: save chart as image
-                }, label: {
-                    Image(systemName: "square.and.arrow.down")
-                        .foregroundColor(color)
-                        .font(.title3)
-                })
             }
             
+            let sortedDates = Array(moods.keys).sorted(by: { $0.compare($1) == .orderedAscending })
+
             Chart {
-                ForEach(Array(moods.keys).sorted(by: { $0.compare($1) == .orderedAscending }), id: \.self) { key in
-                    let y = Utilities.safeAverage(mood: moods[key]!)
+                ForEach(sortedDates, id: \.self) { key in
+                    let y = Statistics.shared.safeAverage(mood: moods[key]!)
                     if y != nil {
                         let weekDayFormatted = key.formatted(Date.FormatStyle().weekday(.abbreviated))
-                        LineMark(x: .value("Day", "\(weekDayFormatted) \(Utilities.getMonthDay(from: key))"), y: .value("Value", y!))
-                            .foregroundStyle(.linearGradient(colors: Utilities.colorsFromSadToHappy, startPoint: .bottom, endPoint: .top))
+                        LineMark(x: .value("Day", "\(weekDayFormatted) \(Time.shared.getMonthDay(from: key))"), y: .value("Value", y!))
+                            .foregroundStyle(.linearGradient(colors: Entry.colorsFromSadToHappy, startPoint: .bottom, endPoint: .top))
                             .interpolationMethod(graphInterpolation.toInterpolation())
-                        AreaMark(x: .value("Day", "\(weekDayFormatted) \(Utilities.getMonthDay(from: key))"), y: .value("Value", y!))
-                            .foregroundStyle(.linearGradient(colors: Utilities.colorsFromSadToHappy.enumerated().map { (index, color) in
+                        AreaMark(x: .value("Day", "\(weekDayFormatted) \(Time.shared.getMonthDay(from: key))"), y: .value("Value", y!))
+                            .foregroundStyle(.linearGradient(colors: Entry.colorsFromSadToHappy.enumerated().map { (index, color) in
                                 return color.opacity(Double(index) / 10.0)
                             }, startPoint: .bottom, endPoint: .top))
                             .interpolationMethod(graphInterpolation.toInterpolation())
                     }
                 }
             }
+            .chartXAxis(totalDays(sortedDates: sortedDates, moods: moods) > maximumDaysToShowXAxis ? .hidden : .visible)
             .chartYScale(domain: 0...100)
             .frame(height: 250)
-            
             Spacer()
         }
         .padding()
+        .background(Color.theme.background)
+    }
+    
+    // TODO: remove this copied function
+    func totalDays(sortedDates: [Date], moods: MoodsCollection) -> Int {
+        var total = 0
+        for key in sortedDates {
+            let y = Statistics.shared.safeAverage(mood: moods[key]!)
+            if y != nil {
+                total += 1
+            }
+        }
+        return total
     }
 }
 
@@ -256,8 +264,8 @@ struct TotalMoodsChart: View {
     @State private var chartType: ChartType = .bar
     
     var body: some View {
-        let days = viewRouter.statsViewDayRange.dayCount()
-        let moods = Utilities.lastMoods(total: days, entries: entries)
+        let days = viewRouter.statsViewDayRange.dayCount
+        let moods = entries.lastMoods(dayRange: days)
         
         VStack(spacing: 10) {
             HStack {
@@ -274,43 +282,35 @@ struct TotalMoodsChart: View {
                 }
                 
                 Spacer();
-                
-                Button(action: {
-                    // TODO: save chart as image
-                }, label: {
-                    Image(systemName: "square.and.arrow.down")
-                        .foregroundColor(.black)
-                        .font(.title3)
-                })
             }
             
-            let moodsTotal = Utilities.totalMoods(moods: moods)
+            let moodsTotal = Statistics.shared.totalMoods(moods: moods)
             
             if chartType == .bar {
                 Chart {
-                    ForEach(Utilities.colorsFromSadToHappy.indices, id: \.self) { mood in
-                        BarMark(x: .value("Header", Utilities.moodToHeader(mood: mood * 20)), y: .value("Value", moodsTotal[mood]))
-                            .foregroundStyle(Utilities.moodToColor(mood: mood * 20))
+                    ForEach(Entry.colorsFromSadToHappy.indices, id: \.self) { mood in
+                        BarMark(x: .value("Header", Entry.moodToHeader(mood: mood * 20)), y: .value("Value", moodsTotal[mood]))
+                            .foregroundStyle(Entry.moodToColor(mood: mood * 20))
                     }
                 }
                 .frame(height: 250)
             } else if chartType == .pie {
                 GeometryReader { geometry in
-                    PieChartView(colors: Utilities.colorsFromSadToHappy, titles: Utilities.headersFromSadToHappy, values: moodsTotal.map { Double($0) }, width: 200)
+                    PieChartView(colors: Entry.colorsFromSadToHappy, titles: Entry.headersFromSadToHappy, values: moodsTotal.map { Double($0) }, width: 200)
                 }
             } else { // the other option is an emotion chart
                 HStack {
-                    ForEach(Utilities.iconsFromSadToHappy.indices, id: \.self) { mood in
-                        let color = Utilities.moodToColor(mood: mood * 20)
+                    ForEach(Entry.iconsFromSadToHappy.indices, id: \.self) { mood in
+                        let color = Entry.moodToColor(mood: mood * 20)
                         Spacer()
                         VStack(spacing: 10) {
-                            Image(Utilities.moodToIcon(mood: mood * 20))
+                            Image(Entry.moodToIcon(mood: mood * 20))
                                 .resizable()
                                 .renderingMode(.template)
                                 .foregroundColor(color)
                                 .frame(width: 50, height: 50)
                             Text("\(moodsTotal[mood])")
-                                .foregroundColor(.white)
+                                .foregroundColor(.theme.background)
                                 .font(.title)
                                 .bold()
                                 .padding(.horizontal)
@@ -325,6 +325,7 @@ struct TotalMoodsChart: View {
             Spacer()
         }
         .padding()
+        .background(Color.theme.background)
     }
 }
 
@@ -333,10 +334,13 @@ struct TotalActivitiesChart: View {
     
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
     
+    private let minimumToShow: Int = 5
+    private let maximumToShow: Int = 10
+    
     var body: some View {
-        let days = viewRouter.statsViewDayRange.dayCount()
-        let moods = Utilities.lastMoods(total: days, entries: entries)
-        let activitiesTotal = Utilities.totalActivities(moods: moods)
+        let days = viewRouter.statsViewDayRange.dayCount
+        let moods = entries.lastMoods(dayRange: days)
+        let activitiesTotal = Statistics.shared.totalActivities(moods: moods)
         
         VStack(alignment: .leading) {
             HStack {
@@ -345,23 +349,14 @@ struct TotalActivitiesChart: View {
                     .bold()
                 
                 Spacer()
-                
-                if activitiesTotal.count >= Utilities.maximumPreviewActivities {
-                    Button(action: {
-                        // TODO: save chart as image
-                    }, label: {
-                        Image(systemName: "square.and.arrow.down")
-                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)                            .font(.title3)
-                    })
-                }
             }
             
-            if activitiesTotal.count < Utilities.minimumActivitiesToShowInChart {
+            if activitiesTotal.count < minimumToShow {
                 Text("Not enough activities yet...")
                     .font(.title3)
                     .foregroundColor(.secondary)
             } else {
-                let displayedActivitiesTotal = activitiesTotal.sorted { $0.1 > $1.1 }.prefix(Utilities.maximumActivitiesToShowInChart)
+                let displayedActivitiesTotal = activitiesTotal.sorted { $0.1 > $1.1 }.prefix(maximumToShow)
                 
                 let most = displayedActivitiesTotal[0].1
                 
@@ -387,8 +382,21 @@ struct TotalActivitiesChart: View {
             }
         }
         .padding()
-        .background(.white)
+        .background(Color.theme.secondaryBackground)
         .cornerRadius(20)
+    }
+}
+
+struct DailyAppearanceView: View {
+    @Binding var appearance: DailyAppearance?
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text(appearance!.dailyChallenge!.content!)
+                .font(.largeTitle)
+                .bold()
+                .padding()
+        }
     }
 }
 
@@ -396,10 +404,15 @@ struct TotalActivitiesChart: View {
 struct YearView: View {
     @StateObject var viewRouter: ViewRouter
     
+    @Environment(\.managedObjectContext) private var context
+    
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
     @FetchRequest(sortDescriptors: []) private var appearances: FetchedResults<DailyAppearance>
     
     @State private var showMoods: Bool = true
+    
+    @State private var showDailyAppearance: Bool = false
+    @State private var selectedDailyAppearance: DailyAppearance?
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -419,19 +432,11 @@ struct YearView: View {
                 .accentColor(.secondary)
                 
                 Spacer()
-                
-                Button(action: {
-                    // TODO: save chart as image
-                }, label: {
-                    Image(systemName: "square.and.arrow.down")
-                        .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
-                        .font(.title3)
-                })
             }
             
             let start = Calendar.current.date(from: Calendar.current.dateComponents([.year], from: Calendar.current.startOfDay(for: .now)))!
             let days = Calendar.current.dateComponents([.day], from: start, to: .now).day! + 1
-            let moods = Utilities.lastMoods(total: days, entries: entries)
+            let moods = entries.lastMoods(dayRange: days)
             
             HStack(alignment: .top, spacing: 15) {
                 VStack {
@@ -445,7 +450,7 @@ struct YearView: View {
                                 
                 ForEach(1...12, id: \.self) { month in
                     VStack(spacing: 3) {
-                        Text(String(Utilities.monthDayFirstLetter(from: month)))
+                        Text(String(Time.shared.monthDayFirstLetter(from: month)))
                             .font(.system(size: 13.13))
                             .foregroundColor(.secondary)
                         
@@ -456,18 +461,25 @@ struct YearView: View {
                             let date = Calendar.current.date(from: dateComponents)!
                             
                             if showMoods {
-                                let mood = date > .now ? nil : Utilities.safeAverage(mood: moods[date]!)
-                                let color: Color = mood == nil ? .secondary : Utilities.moodToColor(mood: Int(mood!))
+                                let mood = date > .now ? nil : Statistics.shared.safeAverage(mood: moods[date]!)
+                                let color: Color = mood == nil ? .secondary : Entry.moodToColor(mood: Int(mood!))
                                 
                                 Circle()
                                     .fill(color)
                                     .frame(width: 13, height: 13)
                             } else {
-                                let color: Color = dailyChallengeExists(from: date) ? .pink : .secondary
+                                let appearance = context.dailyAppearance(from: date)
+                                let color: LinearGradient = appearance == nil ? .linearGradient(colors: [.secondary], startPoint: .topLeading, endPoint: .bottomTrailing) : .linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
                                 
                                 Circle()
                                     .fill(color)
                                     .frame(width: 13, height: 13)
+                                    .onTapGesture {
+                                        if appearance != nil {
+                                            selectedDailyAppearance = appearance
+                                            showDailyAppearance = true
+                                        }
+                                    }
                             }
                         }
                     }
@@ -477,20 +489,20 @@ struct YearView: View {
             
             Divider()
             
-            let moodsTotal = Utilities.totalMoods(moods: moods)
+            let moodsTotal = Statistics.shared.totalMoods(moods: moods)
 
             HStack {
-                ForEach(Utilities.iconsFromSadToHappy.indices, id: \.self) { mood in
-                    let color = Utilities.moodToColor(mood: mood * 20)
+                ForEach(Entry.iconsFromSadToHappy.indices, id: \.self) { mood in
+                    let color = Entry.moodToColor(mood: mood * 20)
                     Spacer()
                     VStack(spacing: 10) {
-                        Image(Utilities.moodToIcon(mood: mood * 20))
+                        Image(Entry.moodToIcon(mood: mood * 20))
                             .resizable()
                             .renderingMode(.template)
                             .foregroundColor(color)
                             .frame(width: 50, height: 50)
                         Text(moodsTotal[mood].formatted())
-                            .foregroundColor(.white)
+                            .foregroundColor(.theme.secondaryBackground)
                             .font(.body)
                             .bold()
                             .padding(.horizontal, 10)
@@ -504,27 +516,19 @@ struct YearView: View {
             .padding()
         }
         .padding()
-        .background(.white)
+        .background(Color.theme.secondaryBackground)
         .cornerRadius(20)
-    }
-    
-    // checks if a date appears in a submitted daily challenge
-    func dailyChallengeExists(from: Date) -> Bool {
-        for appearance in appearances {
-            if from == Calendar.current.startOfDay(for: appearance.date!) && appearance.dailyChallenge != nil {
-                return true
-            }
+        .sheet(isPresented: $showDailyAppearance) {
+            DailyAppearanceView(appearance: $selectedDailyAppearance)
         }
-        return false
     }
 }
-
-//                          [date: (sum, total,  activities)]
-typealias MoodsCollection = [Date: (Int, Int, Set<Activity>)]
 
 // visualizes the user's information
 struct StatsView: View {
     @StateObject var viewRouter: ViewRouter
+    
+    @Environment(\.managedObjectContext) private var context
     
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
     
@@ -535,7 +539,7 @@ struct StatsView: View {
         
     var body: some View {
         if entries.isEmpty {
-            Text("No entries yet to display statistics...")
+            Text("Not enough data yet to display statistics...")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
@@ -548,7 +552,7 @@ struct StatsView: View {
                 .pickerStyle(.segmented)
                 
                 let days = 15
-                let moods = Utilities.lastMoods(total: days, entries: entries)
+                let moods = entries.lastMoods(dayRange: days)
                 
                 VStack(alignment: .leading) {
                     HStack {
@@ -562,16 +566,16 @@ struct StatsView: View {
                         Spacer()
                     }
                     
-                    let gradient: [Color] = [.white, .cyan]
+                    let gradient: [Color] = [.white, .accentColor]
                     Chart {
                         ForEach(Array(moods.keys).sorted(by: { $0.compare($1) == .orderedAscending }), id: \.self) { key in
-                            let y = Utilities.safeAverage(mood: moods[key]!)
+                            let y = Statistics.shared.safeAverage(mood: moods[key]!)
                             if y != nil {
                                 let weekDayFormatted = key.formatted(Date.FormatStyle().weekday(.abbreviated))
-                                LineMark(x: .value("Day", "\(weekDayFormatted) \(Utilities.getMonthDay(from: key))"), y: .value("Value", y!))
-                                    .foregroundStyle(.cyan)
+                                LineMark(x: .value("Day", "\(weekDayFormatted) \(Time.shared.getMonthDay(from: key))"), y: .value("Value", y!))
+                                    .foregroundStyle(Color.accentColor)
                                     .interpolationMethod(.catmullRom)
-                                AreaMark(x: .value("Day", "\(weekDayFormatted) \(Utilities.getMonthDay(from: key))"), y: .value("Value", y!))
+                                AreaMark(x: .value("Day", "\(weekDayFormatted) \(Time.shared.getMonthDay(from: key))"), y: .value("Value", y!))
                                     .foregroundStyle(.linearGradient(colors: gradient.enumerated().map { (index, color) in
                                         return color.opacity(Double(index) / 2.0)
                                     }, startPoint: .bottom, endPoint: .top))
@@ -584,8 +588,9 @@ struct StatsView: View {
                     .frame(height: 150)
                 }
                 .padding()
-                .background(.white)
+                .background(Color.theme.secondaryBackground)
                 .cornerRadius(20)
+                .padding()
                 .onTapGesture {
                     showMoodGraph = true
                 }
@@ -602,32 +607,38 @@ struct StatsView: View {
                         Spacer()
                     }
                     
-                    let moodsTotal = Utilities.totalMoods(moods: moods)
+                    let moodsTotal = Statistics.shared.totalMoods(moods: moods)
 
                     Chart {
-                        ForEach(Utilities.colorsFromSadToHappy.indices, id: \.self) { mood in
-                            BarMark(x: .value("Header", Utilities.moodToHeader(mood: mood * 20)), y: .value("Value", moodsTotal[mood]))
-                                .foregroundStyle(.cyan)
+                        ForEach(Entry.colorsFromSadToHappy.indices, id: \.self) { mood in
+                            BarMark(x: .value("Header", Entry.moodToHeader(mood: mood * 20)), y: .value("Value", moodsTotal[mood]))
+                                .foregroundStyle(Color.accentColor)
                         }
                     }
                     .chartXAxis(.hidden)
                     .frame(height: 150)
                 }
                 .padding()
-                .background(.white)
+                .background(Color.theme.secondaryBackground)
                 .cornerRadius(20)
+                .padding()
                 .onTapGesture {
                     showTotalMoodsChart = true
                 }
                 
                 TotalActivitiesChart(viewRouter: viewRouter)
+                    .padding()
                                     
                 YearView(viewRouter: viewRouter)
+                    .environment(\.managedObjectContext, context)
+                    .padding()
+                
+                MakeSpaceForTabBar()
             }
-            .padding()
-            .background(.bar)
+            .background(Color.theme.background)
             .sheet(isPresented: $showMoodGraph) {
-                MoodGraphView(viewRouter: viewRouter)                .presentationDetents([.medium, .fraction(0.4)])
+                MoodGraphView(viewRouter: viewRouter)
+                    .presentationDetents([.medium, .fraction(0.4)])
             }
             .sheet(isPresented: $showTotalMoodsChart) {
                 TotalMoodsChart(viewRouter: viewRouter, chartDetent: $chartDetent)
@@ -642,6 +653,9 @@ struct StatsView: View {
 
 struct StatsView_Previews: PreviewProvider {
     static var previews: some View {
+        let persistenceContainer = PersistenceController.shared
+        
         StatsView(viewRouter: ViewRouter())
+            .environment(\.managedObjectContext, persistenceContainer.container.viewContext)
     }
 }

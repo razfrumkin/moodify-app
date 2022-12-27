@@ -8,82 +8,13 @@
 import SwiftUI
 import CoreData
 
-// a class that manages notifications
-class NotificationManager {
-    static let shared: NotificationManager = NotificationManager()
-    
-    // this function requests authorization from the user
-    func requestAuthorization() {
-        let options: UNAuthorizationOptions = [.alert, .sound, .badge]
-        UNUserNotificationCenter.current().requestAuthorization(options: options) { success, error in
-            if let error = error {
-                fatalError("Unresolved User Notification error: \(error)")
-            } else {
-                NotificationManager.shared.cancelAllNotifications() // just incase
-                NotificationManager.shared.scheduleNotification(time: Utilities.getDefaultReminder())
-            }
-        }
-    }
-    
-    // this function schedules a notification
-    func scheduleNotification(time: Date) {
-        let remindMeIn1MinuteAction = UNNotificationAction(identifier: "reminderNotification.in1Minute", title: "Remind Me In 1 Minute", options: [])
-        let remindMeIn10MinutesAction = UNNotificationAction(identifier: "reminderNotification.in10Minutes", title: "Remind Me In 10 Minutes", options: [])
-        let remindMeIn30MinutesAction = UNNotificationAction(identifier: "reminderNotification.in30Minutes", title: "Remind Me In 30 Minutes", options: [])
-        let remindMeIn1HourAction = UNNotificationAction(identifier: "reminderNotification.in1Hour", title: "Remind Me In 1 Hour", options: [])
-        
-        let reminderNotificationCategory = UNNotificationCategory(identifier: Utilities.reminderNotificationCategory, actions: [remindMeIn1MinuteAction, remindMeIn10MinutesAction, remindMeIn30MinutesAction, remindMeIn1HourAction], intentIdentifiers: [], options: .customDismissAction)
-        
-        UNUserNotificationCenter.current().setNotificationCategories([reminderNotificationCategory])
-        
-        let content = UNMutableNotificationContent()
-        content.title = "How are you today?"
-        content.subtitle = "Hop on to fill your entry!"
-        content.sound = .default
-        content.categoryIdentifier = Utilities.reminderNotificationCategory
-        
-        var dateComponents = DateComponents()
-        dateComponents.hour = Calendar.current.component(.hour, from: time)
-        dateComponents.minute = Calendar.current.component(.minute, from: time)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-                
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                fatalError("Unresolved User Notification error: \(error)")
-            }
-        }
-    }
-    
-    // this function takes a notification and snoozes it by a given number of minutes
-    func scheduleTemporaryNotification(response: UNNotificationResponse, minutes: Int) {
-        let newContent = response.notification.request.content.mutableCopy() as! UNMutableNotificationContent
-        
-        let newTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60, repeats: false)
-        
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: newContent, trigger: newTrigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                fatalError("Unresolved User Notification error: \(error)")
-            }
-        }
-    }
-    
-    // this function cancels ALL notifications
-    func cancelAllNotifications() {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [Utilities.reminderNotificationCategory])
-    }
-}
-
 // manage and receive low level calls from the device and application
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     // this function gets called when the application launches
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
         
-        Utilities.prepopulateData(context: PersistenceController.shared.container.viewContext)
+        preload()
         UIApplication.shared.applicationIconBadgeNumber = 0
         
         return true
@@ -95,7 +26,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         let category = response.notification.request.content.categoryIdentifier
         
         switch category {
-        case Utilities.reminderNotificationCategory:
+        case NotificationManager.shared.reminderNotificationCategoryIdentifier:
             let action = response.actionIdentifier
             switch action {
             case "reminderNotification.in1Minute":
@@ -112,8 +43,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             default:
                 // redirect to NewEntryView through HomeView
                 ExternalData.shared.launchedViaEntryReminderNotification = true
-                
-                //fatalError("Unresolved User Notification error: Could not find the notification action: \"\(action)\"")
             }
             
             break
@@ -122,6 +51,23 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         }
         
         completionHandler()
+    }
+    
+    // preload all the default data
+    private func preload() {
+        if UserDefaults.standard.object(forKey: "firstLaunch") == nil {
+            UserDefaults.standard.set(true, forKey: "firstLaunch")
+            UserDefaults.standard.set(SchemeType.light.rawValue, forKey: "schemeType")
+            UserDefaults.standard.set(NotificationManager.shared.getDefaultReminder(), forKey: "reminder")
+            UserDefaults.standard.set(true, forKey: "weekStartsOnSunday")
+            context.prepopulateQuotes()
+            context.prepopulateActivites()
+            context.prepopulateDailyChallenges()
+        }
+    }
+    
+    var context: NSManagedObjectContext {
+        return PersistenceController.shared.container.viewContext
     }
 }
 

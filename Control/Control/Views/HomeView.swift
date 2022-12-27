@@ -20,9 +20,7 @@ struct HomeView: View {
     @AppStorage("dailyChallengeDate") var dailyChallengeDate: Date = Calendar.current.startOfDay(for: .now)
     @AppStorage("dailyChallengeID") var dailyChallengeID: String = ""
         
-    @State private var isNewEntryViewActive: Bool = false
     @State private var showDailyChallenge: Bool = false
-    @State private var isEntriesViewActive: Bool = false
     
     @State private var timeRemaining: Int = 0
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -30,23 +28,24 @@ struct HomeView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
+            ZStack {
                 VStack {
                     ZStack(alignment: .leading) {
                         Rectangle()
-                            .fill(.purple)
+                            .fill(.linearGradient(colors: Utilities.gradient, startPoint: UnitPoint.topLeading, endPoint: .bottomTrailing))
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         VStack(alignment: .leading, spacing: 10) {
+                            Spacer()
                             Text("\(getDaysInARow()) day(s) in a row")
                                 .font(.title)
                                 .bold()
-                                .foregroundColor(.white)
+                                .foregroundColor(.theme.background)
                             
-                            let dateHeader = Utilities.dayOfTheWeekAndDayOfTheMonth(from: .now)
+                            let dateHeader = Time.shared.dayOfTheWeekAndDayOfTheMonth(from: .now)
                             Text("\(dateHeader.0), \(dateHeader.1)")
                                 .font(.headline)
                                 .bold()
-                                .foregroundColor(.black.opacity(0.5))
+                                .foregroundColor(.theme.background.opacity(0.5))
                             
                             HStack {
                                 let dateComponents = Calendar(identifier: .gregorian).dateComponents([.yearForWeekOfYear, .weekOfYear], from: .now)
@@ -64,13 +63,13 @@ struct HomeView: View {
                                     Spacer()
                                     VStack(spacing: 5) {
                                         Text(weekDay.formatted(Date.FormatStyle().weekday(.abbreviated)))
-                                            .foregroundColor(.white.opacity(0.5))
-                                        Text("\(Utilities.getMonthDay(from: weekDay))")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.theme.background.opacity(0.5))
+                                        Text("\(Time.shared.getMonthDay(from: weekDay))")
+                                            .foregroundColor(.theme.background)
                                             .bold()
                                     }
                                     .padding(.all, 5)
-                                    .background(isToday ? .black.opacity(0.25) : .purple)
+                                    .background(isToday ? .black.opacity(0.25) : .clear)
                                     .cornerRadius(10)
                                     Spacer()
                                 }
@@ -79,93 +78,109 @@ struct HomeView: View {
                         }
                         .padding()
                     }
-                    .frame(minHeight: 350)
+                    .frame(maxHeight: 300)
+                    .cornerRadius(10)
                     
-                    NavigationLink(destination: NewEntryView(viewRouter: viewRouter, isActive: $isNewEntryViewActive)
-                        .padding(.bottom)
-                        .environment(\.managedObjectContext, context), isActive: Binding<Bool>(
-                            get: {
-                                isNewEntryViewActive
-                            }, set: {
-                                isNewEntryViewActive = $0
-                                viewRouter.showTabBar = !isNewEntryViewActive
-                            }
-                        )) {
+                    Spacer()
+                }
+                
+                ScrollView {
+                    Rectangle()
+                        .fill(.clear)
+                        .frame(height: 300)
+                    VStack(spacing: 20) {
+                        Button(action: {
+                            viewRouter.isNewEntryViewActive = true
+                        }, label: {
                             ZStack(alignment: .leading) {
-                                Rectangle()
-                                    .fill(.orange)
-                                    .frame(maxWidth: .infinity)
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.accentColor)
+                                Image("checkIn")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .foregroundColor(.theme.background.opacity(0.3))
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 150)
+                                    .position(x: 300, y: 100)
                                 VStack(alignment: .leading, spacing: 50) {
                                     Text("Check In")
-                                        .foregroundColor(.white)
                                         .font(.body)
                                         .bold()
                                     Text("Take a break to tell us how you feel today")
-                                        .foregroundColor(.white)
                                         .font(.title3)
                                 }
                                 .padding()
                             }
-                            .cornerRadius(10)
+                            .foregroundColor(.theme.background)
+                            .frame(maxWidth: .infinity, maxHeight: 150)
                             .padding()
-                        }
-                    
-                    Button(action: {
-                        showDailyChallenge = true
-                    }, label: {
-                        ZStack(alignment: .leading) {
-                            Rectangle()
-                                .fill(.pink)
-                                .frame(maxWidth: .infinity)
-                            VStack(alignment: .leading, spacing: 50) {
-                                Text("Daily Challenge")
-                                    .foregroundColor(.white)
-                                    .font(.body)
-                                    .bold()
-                                if isDailyChallengeCompleted() {
-                                    Label("Completed", systemImage: "checkmark")
-                                        .foregroundColor(.white)
-                                        .font(.title3)
-                                } else {
-                                    Text("Ends in \(Utilities.hoursMinutesSeconds(seconds: timeRemaining))")
-                                        .foregroundColor(.white)
-                                        .font(.title3)
-                                }
-                            }
-                            .padding()
-                        }
-                        .cornerRadius(10)
-                        .padding()
-                    })
-                    
-                    NavigationLink(destination: EntriesView(viewRouter: viewRouter)
-                        .environment(\.managedObjectContext, context), isActive: Binding<Bool>(
-                            get: {
-                                isEntriesViewActive
-                            }, set: {
-                                isEntriesViewActive = $0
-                                viewRouter.showTabBar = !isEntriesViewActive
-                            }
-                        )) {
+                        })
+                        
+                        
+                        Button(action: {
+                            showDailyChallenge = true
+                        }, label: {
                             ZStack(alignment: .leading) {
-                                Rectangle()
-                                    .fill(.mint)
-                                    .frame(maxWidth: .infinity)
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(.linearGradient(colors: Utilities.gradient, startPoint: UnitPoint.topLeading, endPoint: .bottomTrailing))
+                                Image("dailyChallenge")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .foregroundColor(.theme.background.opacity(0.3))
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 150)
+                                    .position(x: 300, y: 100)
+                                VStack(alignment: .leading, spacing: 50) {
+                                    Text("Daily Challenge")
+                                        .font(.body)
+                                        .bold()
+                                    if isDailyChallengeCompleted() {
+                                        Label("Completed", systemImage: "checkmark")
+                                            .font(.title3)
+                                    } else {
+                                        Text("Ends in \(Time.shared.hoursMinutesSeconds(seconds: timeRemaining))")
+                                            .font(.title3)
+                                    }
+                                }
+                                .padding()
+                            }
+                            .foregroundColor(.theme.background)
+                            .frame(maxWidth: .infinity, maxHeight: 150)
+                            .padding()
+                        })
+                        
+                        Button(action: {
+                            viewRouter.isEntriesViewActive = true
+
+                        }, label: {
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(.linearGradient(colors: Utilities.gradient, startPoint: UnitPoint.topLeading, endPoint: .bottomTrailing))
+                                Image("entries")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .foregroundColor(.theme.background.opacity(0.3))
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 150)
+                                    .position(x: 300, y: 100)
+                                    .frame(maxWidth: .infinity, maxHeight: 150)
                                 VStack(alignment: .leading, spacing: 50) {
                                     Text("List of Entries")
-                                        .foregroundColor(.white)
                                         .font(.body)
                                         .bold()
                                     Text("Check out the history of your entries")
-                                        .foregroundColor(.white)
                                         .font(.title3)
                                 }
                                 .padding()
                             }
-                            .cornerRadius(10)
+                            .foregroundColor(.theme.background)
+                            .frame(maxWidth: .infinity, maxHeight: 150)
                             .padding()
-                        }
+                        })
                     }
+                    
+                    MakeSpaceForTabBar()
+                }
             }
             .ignoresSafeArea()
         }
@@ -175,15 +190,11 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(challenge.content ?? "There was an error loading the daily challenge")
                         .font(.title.weight(.semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(.theme.background)
                     
-                    if isDailyChallengeCompleted() {
-                        Text("Daily challenged has been completed")
-                            .foregroundColor(.white.opacity(0.9))
-                            .multilineTextAlignment(.leading)
-                    } else {
-                        Text("Ends in \(Utilities.hoursMinutesSeconds(seconds: timeRemaining))")
-                            .foregroundColor(.white.opacity(0.9))
+                    if !isDailyChallengeCompleted() {
+                        Text("Ends in \(Time.shared.hoursMinutesSeconds(seconds: timeRemaining))")
+                            .foregroundColor(.theme.background.opacity(0.75))
                             .multilineTextAlignment(.leading)
                     }
                 }
@@ -191,7 +202,7 @@ struct HomeView: View {
                 
                 if isDailyChallengeCompleted() {
                     Label("Completed", systemImage: "checkmark")
-                        .foregroundColor(.white)
+                        .foregroundColor(.theme.background)
                         .font(.title3)
                 } else {
                     Button(action: {
@@ -207,7 +218,8 @@ struct HomeView: View {
                     }, label: {
                         Text("Done!")
                             .bold()
-                            .foregroundColor(.pink)
+                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: UnitPoint.topLeading, endPoint: .bottomTrailing)                        
+                            .font(.title3)
                             .frame(width: 150, height: 50)
                             .background(.white)
                             .cornerRadius(15)
@@ -215,7 +227,7 @@ struct HomeView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.pink)
+            .background(.linearGradient(colors: Utilities.gradient, startPoint: UnitPoint.topLeading, endPoint: .bottomTrailing))
             .presentationDetents([.fraction(0.5)])
         }
         .onReceive(timer) { time in
@@ -243,12 +255,6 @@ struct HomeView: View {
             }
             
             resetTimer()
-            
-            if ExternalData.shared.launchedViaEntryReminderNotification {
-                ExternalData.shared.launchedViaEntryReminderNotification = false
-                isNewEntryViewActive = true
-                viewRouter.showTabBar = false
-            }
         }
     }
     
@@ -294,10 +300,7 @@ struct HomeView: View {
     }
     
     private func isDailyChallengeCompleted() -> Bool {
-        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "DailyAppearance")
-        request.predicate = NSPredicate(format: "date == %@", Calendar.current.startOfDay(for: .now) as CVarArg)
-        request.fetchLimit = 1
-        return try! context.count(for: request) > 0
+        return context.dailyAppearance(from: .now) != nil
     }
 }
 
