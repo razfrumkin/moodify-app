@@ -15,59 +15,53 @@ struct SettingsView: View {
     @FetchRequest(sortDescriptors: []) private var entries: FetchedResults<Entry>
     @FetchRequest(sortDescriptors: []) private var activities: FetchedResults<Activity>
     @FetchRequest(sortDescriptors: []) private var appearances: FetchedResults<DailyAppearance>
+    @FetchRequest(sortDescriptors: []) private var quotes: FetchedResults<Quote>
     
     @State private var showDeleteEntriesAlert: Bool = false
     @State private var showResetActivitiesAlert: Bool = false
     @State private var showDeleteDailyChallengesAlert: Bool = false
+    @State private var showResetQuotesAlert: Bool = false
     
     @AppStorage("schemeType") private var schemeType: SchemeType = .light
     @AppStorage("reminder") private var reminder: Date = NotificationManager.shared.getDefaultReminder()
-    @AppStorage("weekStartsOnSunday") private var weekStartsOnSunday: Bool = true
         
     var body: some View {
-        NavigationView {
-            Form {
-                Section("App Data") {
-                    Button("Delete Entries Data", role: .destructive) {
-                        showDeleteEntriesAlert = true
-                    }
-                    Button("Reset Activities Data", role: .destructive) {
-                        showResetActivitiesAlert = true
-                    }
-                    Button("Delete Daily Challenges Data", role: .destructive) {
-                        showDeleteDailyChallengesAlert = true
+        Form {
+            Section("App Data") {
+                Button("Delete Entries Data", role: .destructive) {
+                    showDeleteEntriesAlert = true
+                }
+                Button("Reset Activities Data", role: .destructive) {
+                    showResetActivitiesAlert = true
+                }
+                Button("Delete Daily Challenges Data", role: .destructive) {
+                    showDeleteDailyChallengesAlert = true
+                }
+                Button("Reset Quotes Data", role: .destructive) {
+                    showResetQuotesAlert = true
+                }
+            }
+            
+            Section("Appearance") {
+                Picker("Color Theme", selection: $schemeType) {
+                    ForEach(SchemeType.allCases) { value in
+                        Text(value.title)
+                            .tag(value)
                     }
                 }
-                
-                Section("Appearance") {
-                    Picker("Color Theme", selection: $schemeType) {
-                        ForEach(SchemeType.allCases) { value in
-                            Text(value.title)
-                                .tag(value)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .onChange(of: schemeType) { value in
-                        Utilities.changeColorScheme(scheme: value.colorScheme)
-                    }
+                .pickerStyle(.menu)
+                .onChange(of: schemeType) { value in
+                    Visuals.shared.changeColorScheme(scheme: value.colorScheme)
                 }
-                
-                Section("Time") {
-                    DatePicker("Remind At", selection: $reminder, displayedComponents: .hourAndMinute)
-                        .environment(\.locale, Locale(identifier: Time.shared.localeIdentifier))
-                        .onChange(of: reminder) { value in
-                            NotificationManager.shared.cancelAllNotifications()
-                            NotificationManager.shared.scheduleNotification(time: value)
-                        }
-                    
-                    Picker("Week Starts On", selection: $weekStartsOnSunday) {
-                        Text("Sunday")
-                            .tag(true)
-                        Text("Monday")
-                            .tag(false)
+            }
+            
+            Section("Time") {
+                DatePicker("Remind At", selection: $reminder, displayedComponents: .hourAndMinute)
+                    .environment(\.locale, Locale(identifier: Time.shared.localeIdentifier))
+                    .onChange(of: reminder) { value in
+                        NotificationManager.shared.cancelAllNotifications()
+                        NotificationManager.shared.scheduleNotification(time: value)
                     }
-                    .pickerStyle(.menu)
-                }
             }
         }
         .alert("Delete Entries Data", isPresented: $showDeleteEntriesAlert, actions: {
@@ -128,6 +122,23 @@ struct SettingsView: View {
             }
         }, message: {
             Text("Are you sure you want to delete all of your daily challenges? You cannot undo this action.")
+        })
+        .alert("Reset Quotes Data", isPresented: $showResetQuotesAlert, actions: {
+            Button("Delete", role: .destructive) {
+                for quote in quotes {
+                    context.delete(quote)
+                }
+                
+                do {
+                    try context.save()
+                } catch {
+                    fatalError("Unresolved CoreData error: Could not delete quotes data")
+                }
+                
+                context.prepopulateQuotes()
+            }
+        }, message: {
+            Text("Are you sure you want to delete all of the quotes data? You cannot undo this action.")
         })
     }
 }

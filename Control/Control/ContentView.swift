@@ -6,103 +6,6 @@
 //
 
 import SwiftUI
-import UserNotifications
-
-// this enum points out what tab ContentView is or should be using at the moment
-enum Tab {
-    case home
-    case stats
-    case quotes
-    case settings
-}
-
-// this class tells which tab to use and whether to show the tab bar
-class ViewRouter: ObservableObject {
-    @Published var currentTab: Tab = .home
-    
-    @Published var isNewEntryViewActive: Bool = false
-    @Published var isEntriesViewActive: Bool = false
-
-    @Published var statsViewDayRange: DayRangeType = .sevenDays
-}
-
-// view that shows the icons in the tab bar
-struct TabBarIcon: View {
-    @StateObject var viewRouter: ViewRouter
-    let tab: Tab
-    
-    let systemName: String
-    let title: String
-    
-    var namespace: Namespace.ID
-        
-    var body: some View {
-        let isSelected = tab == viewRouter.currentTab
-        VStack(spacing: 20) {
-            if isSelected {
-                Rectangle()
-                    .fill(.linearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing))
-                    .frame(width: 30, height: 3)
-                    .matchedGeometryEffect(id: "tabBarSelectedHorizontalLine", in: namespace)
-            } else {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(width: 30, height: 3)
-            }
-            VStack(spacing: 5) {
-                Image(systemName: "\(systemName)\(isSelected ? ".fill" : "")")
-                    .scaleEffect(isSelected ? 1.1 : 1)
-                    .font(.system(size: 22))
-                                
-                Text(title)
-                    .scaleEffect(isSelected ? 1.1 : 1)
-                    .font(.system(size: 10))
-            }
-            .frame(alignment: .bottom)
-        }
-        .foregroundLinearGradient(colors: isSelected ? Utilities.gradient : [.gray], startPoint: .topLeading, endPoint: .bottomTrailing)
-        .padding(.horizontal)
-        .onTapGesture {
-            withAnimation(.easeIn(duration: 0.25)) {
-                viewRouter.currentTab = tab
-            }
-        }
-    }
-}
-
-// tab bar of ContentView
-struct TabBar: View {
-    @StateObject var viewRouter: ViewRouter
-    
-    @Namespace private var namespace
-    
-    static let height: CGFloat = 115
-        
-    var body: some View {
-        HStack {
-            Spacer()
-            TabBarIcon(viewRouter: viewRouter, tab: .home, systemName: "house", title: "Home", namespace: namespace)
-            Spacer()
-            TabBarIcon(viewRouter: viewRouter, tab: .stats, systemName: "chart.bar", title: "Stats", namespace: namespace)
-            Spacer()
-            TabBarIcon(viewRouter: viewRouter, tab: .quotes, systemName: "lightbulb", title: "Quotes", namespace: namespace)
-            Spacer()
-            TabBarIcon(viewRouter: viewRouter, tab: .settings, systemName: "gear.circle", title: "Settings", namespace: namespace)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: Self.height, alignment: .top)
-        .ignoresSafeArea()
-    }
-}
-
-// put this where the tabbar occupies space from the view
-struct MakeSpaceForTabBar: View {
-    var body: some View {
-        Rectangle()
-            .fill(.clear)
-            .frame(height: TabBar.height)
-    }
-}
 
 // the view that welcomes the user
 struct WelcomeView: View {
@@ -122,7 +25,7 @@ struct WelcomeView: View {
             
             if showLogo {
                 Text("Control")
-                    .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                    .foregroundLinearGradient(colors: [.purple, .cyan], startPoint: .leading, endPoint: .trailing)
                     .font(.system(size: 75))
             }
             
@@ -144,7 +47,7 @@ struct WelcomeView: View {
                                 .frame(width: 20, height: 150)
                             
                             Capsule()
-                                .fill(.linearGradient(colors: Utilities.gradient, startPoint: .top, endPoint: .bottom))
+                                .fill(.linearGradient(colors: [.orange, .yellow], startPoint: .top, endPoint: .bottom))
                                 .frame(width: 20, height: heights[index])
                                 .animation(.spring(dampingFraction: 0.25).delay(0.05 * Double(index)))
                                 .onReceive(timer) { time in
@@ -194,13 +97,20 @@ struct IntroductionView: View {
     @State private var showFeatures: Bool = false
     @State private var showPrivacyHeader: Bool = false
     
+    private let features: [(String, String, String)] = [
+        ("face.smiling", "Entering Your Mood", "You will get a notification daily asking you to input several parameters."),
+        ("heart", "Saving Quotes", "If you ever need some inspiration, we offer lots of inspiring quotes."),
+        ("chart.line.uptrend.xyaxis", "Diagrams", "Visualize your daily activity using graphs and charts."),
+        ("calendar", "Daily Challenge", "Challenge yourself to do random dares every day.")
+    ]
+    
     var body: some View {
         VStack {
             Spacer()
             
             if showHeader {
                 Text("Introduction")
-                    .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                    .foregroundLinearGradient(colors: [.purple, .cyan], startPoint: .leading, endPoint: .trailing)
                     .font(.system(size: 50))
                     .bold()
             }
@@ -209,16 +119,16 @@ struct IntroductionView: View {
             
             if showFeatures {
                 VStack {
-                    ForEach(Utilities.features.indices) { index in
+                    ForEach(features.indices) { index in
                         if tick > 10 + Int(10 * Double(index)) {
                             HStack(spacing: 10) {
-                                Image(systemName: Utilities.features[index].0)
+                                Image(systemName: features[index].0)
                                     .resizable()
                                     .frame(width: 50, height: 50)
                                 VStack(alignment: .leading) {
-                                    Text(Utilities.features[index].1)
+                                    Text(features[index].1)
                                         .bold()
-                                    Text(Utilities.features[index].2)
+                                    Text(features[index].2)
                                 }
                             }
                             .foregroundColor(.black)
@@ -237,7 +147,7 @@ struct IntroductionView: View {
             
             if showPrivacyHeader {
                 Label("Your data is private", systemImage: "lock.fill")
-                    .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                    .foregroundLinearGradient(colors: [.purple, .cyan], startPoint: .leading, endPoint: .trailing)
             }
             
             Spacer()
@@ -295,7 +205,7 @@ struct RequestNotificationView: View {
                     Button("No thanks") {
                         
                     }
-                    .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                    .foregroundLinearGradient(colors: [.purple, .cyan], startPoint: .leading, endPoint: .trailing)
                 }
             }
             
@@ -317,18 +227,118 @@ struct RequestNotificationView: View {
     }
 }
 
+// this class tells which tab to use and whether to show the tab bar
+class ViewRouter: ObservableObject {
+    @Published var showTabBar: Bool = true
+    @Published var currentTab: Tab = .home
+    
+    @Published var showAllTimeStatistics: Bool = true
+    @Published var statsViewDayRange: DayRangeType = .sevenDays
+    
+    init() {
+        
+    }
+}
+
+// put this where the tabbar occupies space from the view
+struct MakeSpaceForTabBar: View {
+    var body: some View {
+        Rectangle()
+            .fill(.clear)
+            .frame(height: 115) // TODO: change to a constant
+    }
+}
+
+enum Tab: String, CaseIterable {
+    case home
+    case stats
+    case quotes
+    case settings
+}
+
+// view that shows the icons in the tab bar
+struct TabBarIcon: View {
+    let tab: Tab
+    
+    @Binding var currentTab: Tab
+    
+    let systemName: String
+    let title: String
+    
+    var namespace: Namespace.ID
+        
+    var body: some View {
+        let isSelected = currentTab == tab
+        VStack(spacing: 20) {
+            if isSelected {
+                Capsule()
+                    .frame(width: 30, height: 5)
+                    .matchedGeometryEffect(id: "tabBarSelectedHorizontalLine", in: namespace)
+                    .animation(.easeIn(duration: 0.25))
+            } else {
+                Rectangle()
+                    .fill(.clear)
+                    .frame(width: 30, height: 5)
+            }
+            VStack(spacing: 5) {
+                Image(systemName: "\(systemName)\(isSelected ? ".fill" : "")")
+                    .scaleEffect(isSelected ? 1.1 : 1)
+                    .font(.system(size: 22))
+                                
+                Text(title)
+                    .scaleEffect(isSelected ? 1.1 : 1)
+                    .font(.system(size: 10))
+            }
+            .frame(alignment: .bottom)
+        }
+        .foregroundColor(isSelected ? .purple : .secondary)
+        .shadow(color: .purple, radius: isSelected ? 30 : 0)
+
+        .padding(.horizontal)
+        .onTapGesture {
+            withAnimation(.easeIn(duration: 0.25)) {
+                currentTab = tab
+            }
+        }
+    }
+}
+
+// tab bar of ContentView
+struct TabBar: View {
+    @Binding var currentTab: Tab
+    
+    @Namespace private var namespace
+    
+    static let height: CGFloat = 80
+        
+    var body: some View {
+        HStack {
+            Spacer()
+            TabBarIcon(tab: .home, currentTab: $currentTab, systemName: "house", title: "Home", namespace: namespace)
+            Spacer()
+            TabBarIcon(tab: .stats, currentTab: $currentTab, systemName: "chart.bar", title: "Stats", namespace: namespace)
+            Spacer()
+            TabBarIcon(tab: .quotes, currentTab: $currentTab, systemName: "lightbulb", title: "Quotes", namespace: namespace)
+            Spacer()
+            TabBarIcon(tab: .settings, currentTab: $currentTab, systemName: "gear.circle", title: "Settings", namespace: namespace)
+            Spacer()
+        }
+        .frame(width: UIScreen.main.bounds.size.width, height: Self.height, alignment: .top)
+        .ignoresSafeArea()
+    }
+}
+
 // the main view in the application
 struct ContentView: View {
-    @StateObject var viewRouter: ViewRouter
+    @StateObject private var viewRouter: ViewRouter = ViewRouter()
     
+    @Environment(\.managedObjectContext) private var context
     @AppStorage("schemeType") private var schemeType: SchemeType = .light
     
     @State private var showWelcomeAnimation: Bool = false
-    
-    @Environment(\.managedObjectContext) private var context
         
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 switch viewRouter.currentTab {
                 case .home:
@@ -345,50 +355,36 @@ struct ContentView: View {
                         .environment(\.managedObjectContext, context)
                 }
                 
-                VStack {
-                    Spacer()
-                    
-                    TabBar(viewRouter: viewRouter)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(35)
-                }
-                
-                // nav links here
-                NavigationLink(destination: NewEntryView(viewRouter: viewRouter, isActive: $viewRouter.isNewEntryViewActive)
-                    .padding(.bottom)
-                    .environment(\.managedObjectContext, context), isActive: $viewRouter.isNewEntryViewActive) {
+                if viewRouter.showTabBar {
+                    VStack {
+                        Spacer()
+                        Group {
+                            TabBar(currentTab: $viewRouter.currentTab)
+                                .background(.thinMaterial)
+                        }
                     }
-                
-                NavigationLink(destination: EntriesView(viewRouter: viewRouter)
-                    .environment(\.managedObjectContext, context), isActive: $viewRouter.isEntriesViewActive) {
-                        
-                    }
-            }
-            .sheet(isPresented: $showWelcomeAnimation) {
-                TabView {
-                    WelcomeView()
-                    IntroductionView()
-                    RequestNotificationView()
-                }
-                .tabViewStyle(.page)
-                .indexViewStyle(.page(backgroundDisplayMode: .always))
-            }
-            .onAppear {
-                Utilities.changeColorScheme(scheme: schemeType.colorScheme)
-                if UserDefaults.standard.bool(forKey: "firstLaunch") {
-                    showWelcomeAnimation = true
-                }
-                
-                UserDefaults.standard.set(false, forKey: "firstLaunch")
-                
-                if ExternalData.shared.launchedViaEntryReminderNotification {
-                    ExternalData.shared.launchedViaEntryReminderNotification = false
-                    viewRouter.isNewEntryViewActive = true
                 }
             }
-            .preferredColorScheme(schemeType.colorScheme)
-            .edgesIgnoringSafeArea(.bottom)
         }
+        .sheet(isPresented: $showWelcomeAnimation) {
+            TabView {
+                WelcomeView()
+                IntroductionView()
+                RequestNotificationView()
+            }
+            .tabViewStyle(.page)
+            .indexViewStyle(.page(backgroundDisplayMode: .always))
+        }
+        .onAppear {
+            Visuals.shared.changeColorScheme(scheme: schemeType.colorScheme)
+            if UserDefaults.standard.bool(forKey: "firstLaunch") {
+                showWelcomeAnimation = true
+            }
+            
+            UserDefaults.standard.set(false, forKey: "firstLaunch")
+        }
+        .preferredColorScheme(schemeType.colorScheme)
+        .edgesIgnoringSafeArea(.bottom)
     }
 }
 
@@ -396,7 +392,7 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         let persistenceContainer = PersistenceController.shared
                 
-        ContentView(viewRouter: ViewRouter())
+        ContentView()
             .environment(\.managedObjectContext, persistenceContainer.container.viewContext)
     }
 }

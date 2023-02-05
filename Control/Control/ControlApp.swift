@@ -59,7 +59,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             UserDefaults.standard.set(true, forKey: "firstLaunch")
             UserDefaults.standard.set(SchemeType.light.rawValue, forKey: "schemeType")
             UserDefaults.standard.set(NotificationManager.shared.getDefaultReminder(), forKey: "reminder")
-            UserDefaults.standard.set(true, forKey: "weekStartsOnSunday")
             context.prepopulateQuotes()
             context.prepopulateActivites()
             context.prepopulateDailyChallenges()
@@ -102,7 +101,7 @@ struct ControlApp: App {
         let persistenceContainer = PersistenceController.shared
                         
         WindowGroup {
-            ContentView(viewRouter: ViewRouter())
+            ContentView()
                 .environment(\.managedObjectContext, persistenceContainer.container.viewContext)
         }
     }

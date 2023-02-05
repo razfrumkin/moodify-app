@@ -8,17 +8,11 @@
 import Foundation
 import CoreData
 
-class Database {
-    static let shared: Database = Database()
-    
-    
-}
-
 extension NSManagedObjectContext {
     // returns a daily appearance from a given date. returns nil if there is no appearance in the given date
-    func dailyAppearance(from: Date) -> DailyAppearance? {
+    func dailyAppearance(from date: Date) -> DailyAppearance? {
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "DailyAppearance")
-        request.predicate = NSPredicate(format: "date == %@", Calendar.current.startOfDay(for: from) as CVarArg)
+        request.predicate = NSPredicate(format: "date == %@", Calendar.current.startOfDay(for: date) as CVarArg)
         request.fetchLimit = 1
         let appearances = try! fetch(request) as! [DailyAppearance]
         if appearances.isEmpty { return nil }

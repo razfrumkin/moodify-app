@@ -62,11 +62,11 @@ struct LikedQuotesView: View {
                     }
                 }
             } else {
-                Text("You haven't liked any quotes yet")
+                NoDataView(message: "You haven't liked any quotes yet...", detail: "In order to like a quote, press the like button on the quote you want to like.")
             }
         }
         .sheet(isPresented: $showDetailedLikedQuote, content: {
-            DetailedQuoteView(quote: $detailedQuote, contentColor: .pink.opacity(0.9), authorColor: .pink.opacity(0.6))
+            DetailedQuoteView(quote: $detailedQuote, contentColor: .mint.opacity(0.9), authorColor: .mint.opacity(0.6))
         })
     }
 }
@@ -85,101 +85,99 @@ struct QuotesView: View {
     @State private var showMaximumLikedQuotesAlert = false
             
     var body: some View {
-        NavigationView {
-            VStack {
-                /*Button("PREPOPULATE | (\(quotes.count) quote(s))") {
-                    for quote in quotes {
-                        context.delete(quote)
-                    }
-                    try? context.save()
-                    UserDefaults.standard.set(true, forKey: "firstLaunch")
-                    context.prepopulateQuotesData()
-                }*/
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("\"\(quotes[quoteIndex].content ?? "Unresolved quote")\"")
-                        .font(.title.weight(.semibold))
-                        .foregroundColor(.pink.opacity(0.9))
-                    Text("- \(quotes[quoteIndex].author ?? "Unknown")")
-                        .foregroundColor(.pink.opacity(0.6))
-                        .font(.body.italic().bold())
-                }
-                .frame(width: 350, height: 400)
-                .padding()
-                
-                HStack {
-                    Button(action: {
-                        withAnimation {
-                            quoteIndex = randomQuoteIndex()
-                        }
-                    }, label: {
-                        Image(systemName: "gobackward")
-                            .foregroundColor(.pink)
-                            .padding()
-                    })
-                    .background(.pink.opacity(0.1))
-                    .cornerRadius(15)
-                    
-                    NavigationLink(destination: LikedQuotesView(viewRouter: viewRouter, quotes: quotes)
-                        .environment(\.managedObjectContext, context)) {
-                        HStack {
-                            Image(systemName: "heart.square")
-                            Text("Liked Quotes")
-                        }
-                        .foregroundColor(.pink)
-                    }
-                    .padding()
-                    .background(.pink.opacity(0.1))
-                    .cornerRadius(15)
-                    
-                    Button(action: {
-                        if quotes[quoteIndex].isLiked {
-                            withAnimation {
-                                quotes[quoteIndex].isLiked.toggle()
-                                
-                                do {
-                                    try context.save()
-                                    likedQuotesCount -= 1
-                                } catch {
-                                    fatalError("Unresolved CoreData error: Could not unlike the quote")
-                                }
-                            }
-                        } else if likedQuotesCount + 1 > maximumLikedQuotes {
-                            showMaximumLikedQuotesAlert = true
-                        } else {
-                            withAnimation {
-                                quotes[quoteIndex].isLiked.toggle()
-                                
-                                do {
-                                    try context.save()
-                                    likedQuotesCount += 1
-                                } catch {
-                                    fatalError("Unresolved CoreData error: Could not like the quote")
-                                }
-                            }
-                        }
-                    }, label: {
-                        Image(systemName: quotes[quoteIndex].isLiked ? "heart.fill" : "heart")
-                            .foregroundColor(.pink)
-                            .padding()
-                    })
-                    .alert("You've hit the limit of liked quotes. (\(maximumLikedQuotes) quotes)", isPresented: $showMaximumLikedQuotesAlert) {
-                        Button("Ok", role: .cancel) {
-                            
-                        }
-                    }
-                    .background(.pink.opacity(0.1))
-                    .cornerRadius(15)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.theme.background)
-            .onAppear {
-                likedQuotesCount = 0
+        VStack {
+            /*Button("PREPOPULATE | (\(quotes.count) quote(s))") {
                 for quote in quotes {
-                    if quote.isLiked {
-                        likedQuotesCount += 1
+                    context.delete(quote)
+                }
+                try? context.save()
+                UserDefaults.standard.set(true, forKey: "firstLaunch")
+                context.prepopulateQuotesData()
+            }*/
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("\"\(quotes[quoteIndex].content ?? "Unresolved quote")\"")
+                    .font(.title.weight(.semibold))
+                    .foregroundColor(.mint.opacity(0.9))
+                Text("- \(quotes[quoteIndex].author ?? "Unknown")")
+                    .foregroundColor(.mint.opacity(0.6))
+                    .font(.body.italic().bold())
+            }
+            .frame(width: 350, height: 400)
+            .padding()
+            
+            HStack {
+                Button(action: {
+                    withAnimation {
+                        quoteIndex = randomQuoteIndex()
                     }
+                }, label: {
+                    Image(systemName: "gobackward")
+                        .foregroundColor(.mint)
+                        .padding()
+                })
+                .background(.mint.opacity(0.1))
+                .cornerRadius(15)
+                
+                NavigationLink(destination: LikedQuotesView(viewRouter: viewRouter, quotes: quotes)
+                    .environment(\.managedObjectContext, context)) {
+                    HStack {
+                        Image(systemName: "heart.square")
+                        Text("Liked Quotes")
+                    }
+                    .foregroundColor(.mint)
+                }
+                .padding()
+                .background(.mint.opacity(0.1))
+                .cornerRadius(15)
+                
+                Button(action: {
+                    if quotes[quoteIndex].isLiked {
+                        withAnimation {
+                            quotes[quoteIndex].isLiked.toggle()
+                            
+                            do {
+                                try context.save()
+                                likedQuotesCount -= 1
+                            } catch {
+                                fatalError("Unresolved CoreData error: Could not unlike the quote")
+                            }
+                        }
+                    } else if likedQuotesCount + 1 > maximumLikedQuotes {
+                        showMaximumLikedQuotesAlert = true
+                    } else {
+                        withAnimation {
+                            quotes[quoteIndex].isLiked.toggle()
+                            
+                            do {
+                                try context.save()
+                                likedQuotesCount += 1
+                            } catch {
+                                fatalError("Unresolved CoreData error: Could not like the quote")
+                            }
+                        }
+                    }
+                }, label: {
+                    Image(systemName: quotes[quoteIndex].isLiked ? "heart.fill" : "heart")
+                        .foregroundColor(.mint)
+                        .padding()
+                })
+                .alert("You've hit the limit of liked quotes. (\(maximumLikedQuotes) quotes)", isPresented: $showMaximumLikedQuotesAlert) {
+                    Button("Ok", role: .cancel) {
+                        
+                    }
+                }
+                .background(.mint.opacity(0.1))
+                .cornerRadius(15)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.theme.background)
+        .onAppear {
+            likedQuotesCount = 0
+            for quote in quotes {
+                if quote.isLiked {
+                    likedQuotesCount += 1
                 }
             }
         }

@@ -8,6 +8,29 @@
 import SwiftUI
 import Charts
 
+struct ColorsInformationView: View {
+    var body: some View {
+        VStack {
+            HStack {
+                Spacer()
+                ForEach(Entry.colorsFromSadToHappy, id: \.self) { color in
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: 50, height: 20)
+                }
+                Spacer()
+            }
+            HStack {
+                Text(Entry.headersFromSadToHappy.first!)
+                Spacer()
+                Text(Entry.headersFromSadToHappy.last!)
+            }
+            .foregroundColor(.secondary)
+        }
+        .padding()
+    }
+}
+
 // renders a pie chart
 struct PieChartView: View {
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
@@ -161,18 +184,6 @@ enum ChartType: String, CaseIterable {
     case bar = "chart.bar.xaxis"
     case pie = "chart.pie.fill"
     case emotions = "face.smiling.fill"
-    
-    // returns the sheet detent depending on the chart type
-    var detent: PresentationDetent {
-        switch self {
-        case .bar:
-            return .fraction(0.4)
-        case .pie:
-            return .fraction(0.4)
-        case .emotions:
-            return .fraction(0.2)
-        }
-    }
 }
 
 struct MoodGraphView: View {
@@ -180,7 +191,7 @@ struct MoodGraphView: View {
     
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
     
-    private let maximumDaysToShowXAxis: Int = 8
+    private let maximumDaysToShowXAxis: Int = 7
     
     @State private var graphInterpolation: GraphInterpolation = .curvy
 
@@ -188,8 +199,14 @@ struct MoodGraphView: View {
         let days = viewRouter.statsViewDayRange.dayCount
         let moods = entries.lastMoods(dayRange: days)
         
-        VStack {
+        VStack(alignment: .leading) {
             HStack {
+                Text("Mood Graph")
+                    .font(.title)
+                    .bold()
+                
+                Spacer()
+                
                 Picker("Select the graph interpolation", selection: $graphInterpolation) {
                     ForEach(GraphInterpolation.allCases, id: \.rawValue) { value in
                         Image(systemName: value.rawValue)
@@ -198,27 +215,13 @@ struct MoodGraphView: View {
                 }
                 .pickerStyle(.segmented)
                 .fixedSize()
-                
-                Spacer()
-                                
-                let averageMoodPerDay = Statistics.shared.averageMoodPerDay(moods: moods)
-                let color = Entry.moodToColor(mood: Int(averageMoodPerDay))
-                HStack {
-                    Text("Average mood:")
-                    Text(Entry.moodToHeader(mood: Int(averageMoodPerDay)))
-                        .foregroundColor(color)
-                        .bold()
-                }
-                .cornerRadius(10)
-                
-                Spacer()
             }
             
             let sortedDates = Array(moods.keys).sorted(by: { $0.compare($1) == .orderedAscending })
-
+            
             Chart {
                 ForEach(sortedDates, id: \.self) { key in
-                    let y = Statistics.shared.safeAverage(mood: moods[key]!)
+                    let y = moods[key]!.0.safeAverage()
                     if y != nil {
                         let weekDayFormatted = key.formatted(Date.FormatStyle().weekday(.abbreviated))
                         LineMark(x: .value("Day", "\(weekDayFormatted) \(Time.shared.getMonthDay(from: key))"), y: .value("Value", y!))
@@ -234,18 +237,19 @@ struct MoodGraphView: View {
             }
             .chartXAxis(totalDays(sortedDates: sortedDates, moods: moods) > maximumDaysToShowXAxis ? .hidden : .visible)
             .chartYScale(domain: 0...100)
-            .frame(height: 250)
+            .frame(height: 150)
             Spacer()
         }
         .padding()
-        .background(Color.theme.background)
+        .background(Color.theme.secondaryBackground)
+        .cornerRadius(20)
     }
     
     // TODO: remove this copied function
     func totalDays(sortedDates: [Date], moods: MoodsCollection) -> Int {
         var total = 0
         for key in sortedDates {
-            let y = Statistics.shared.safeAverage(mood: moods[key]!)
+            let y = moods[key]!.0.safeAverage()
             if y != nil {
                 total += 1
             }
@@ -258,17 +262,21 @@ struct TotalMoodsChart: View {
     @StateObject var viewRouter: ViewRouter
     
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
-    
-    @Binding var chartDetent: PresentationDetent
-    
+        
     @State private var chartType: ChartType = .bar
     
     var body: some View {
         let days = viewRouter.statsViewDayRange.dayCount
         let moods = entries.lastMoods(dayRange: days)
         
-        VStack(spacing: 10) {
+        VStack(alignment: .leading) {
             HStack {
+                Text("Mood Count")
+                    .font(.title)
+                    .bold()
+                
+                Spacer()
+                
                 Picker("Select the chart type", selection: $chartType) {
                     ForEach(ChartType.allCases, id: \.rawValue) { value in
                         Image(systemName: value.rawValue)
@@ -277,14 +285,9 @@ struct TotalMoodsChart: View {
                 }
                 .pickerStyle(.segmented)
                 .fixedSize()
-                .onChange(of: chartType) { type in
-                    chartDetent = type.detent
-                }
-                
-                Spacer();
             }
             
-            let moodsTotal = Statistics.shared.totalMoods(moods: moods)
+            let moodsTotal = moods.totalMoods()
             
             if chartType == .bar {
                 Chart {
@@ -293,10 +296,13 @@ struct TotalMoodsChart: View {
                             .foregroundStyle(Entry.moodToColor(mood: mood * 20))
                     }
                 }
-                .frame(height: 250)
+                .frame(height: 150)
             } else if chartType == .pie {
-                GeometryReader { geometry in
-                    PieChartView(colors: Entry.colorsFromSadToHappy, titles: Entry.headersFromSadToHappy, values: moodsTotal.map { Double($0) }, width: 200)
+                VStack {
+                    GeometryReader { geometry in
+                        PieChartView(colors: Entry.colorsFromSadToHappy, titles: Entry.headersFromSadToHappy, values: moodsTotal.map { Double($0) }, width: 175)
+                    }
+                    .frame(height: 210)
                 }
             } else { // the other option is an emotion chart
                 HStack {
@@ -325,7 +331,8 @@ struct TotalMoodsChart: View {
             Spacer()
         }
         .padding()
-        .background(Color.theme.background)
+        .background(Color.theme.secondaryBackground)
+        .cornerRadius(20)
     }
 }
 
@@ -340,7 +347,7 @@ struct TotalActivitiesChart: View {
     var body: some View {
         let days = viewRouter.statsViewDayRange.dayCount
         let moods = entries.lastMoods(dayRange: days)
-        let activitiesTotal = Statistics.shared.totalActivities(moods: moods)
+        let activitiesTotal = moods.totalActivities()
         
         VStack(alignment: .leading) {
             HStack {
@@ -360,25 +367,31 @@ struct TotalActivitiesChart: View {
                 
                 let most = displayedActivitiesTotal[0].1
                 
-                HStack(spacing: 15) {
-                    ForEach(displayedActivitiesTotal.indices.reversed(), id: \.self) { index in
-                        VStack(spacing: 15) {
-                            ZStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 15) {
+                    ForEach(displayedActivitiesTotal.indices, id: \.self) { index in
+                        HStack(spacing: 15) {
+                            ZStack(alignment: .leading) {
                                 Capsule()
                                     .fill(.bar)
-                                    .frame(width: 20, height: 120)
+                                    .frame(width: 120, height: 20)
                                 Capsule()
-                                    .fill(.linearGradient(colors: Utilities.gradient, startPoint: .top, endPoint: .bottom))
-                                    .frame(width: 20, height: CGFloat(120 / most * displayedActivitiesTotal[index].1))
+                                    .fill(.linearGradient(colors: [.orange, .red], startPoint: .leading, endPoint: .trailing))
+                                    .frame(width: CGFloat(120 / most * displayedActivitiesTotal[index].1), height: 20)
                             }
                             
                             Image(systemName: displayedActivitiesTotal[index].0.systemName!)
-                                .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                                .foregroundLinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
                                 .frame(width: 10, height: 10)
+                            
+                            Text(displayedActivitiesTotal[index].0.title!)
+                            
+                            Text(displayedActivitiesTotal[index].1.formatted())
+                                .foregroundColor(.gray)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity)
             }
         }
         .padding()
@@ -407,34 +420,63 @@ struct YearView: View {
     @Environment(\.managedObjectContext) private var context
     
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
-    @FetchRequest(sortDescriptors: []) private var appearances: FetchedResults<DailyAppearance>
+    @FetchRequest(sortDescriptors: []) private var activities: FetchedResults<Activity>
     
-    @State private var showMoods: Bool = true
+    @State private var year: Int = Calendar.current.component(.year, from: .now)
     
+    @State private var entryMemberType: EntryMemberType = .moods
+    @State private var selectedActivity: Activity? = nil
+
     @State private var showDailyAppearance: Bool = false
     @State private var selectedDailyAppearance: DailyAppearance?
     
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
-                Text("This Year")
+                Text("Yearly \(entryMemberType.rawValue)")
                     .font(.title)
                     .bold()
                 
-                Picker("", selection: $showMoods) {
-                    Text("Moods")
-                        .tag(true)
-                    Text("Daily Challenges")
-                        .tag(false)
+                Spacer()
+            }
+            
+            HStack {
+                Button(action: {
+                    withAnimation {
+                        year -= 1
+                    }
+                }, label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                })
+                
+                Text(String(year)) // no commas
+                
+                Button(action: {
+                    withAnimation {
+                        year += 1
+                    }
+                }, label: {
+                    Image(systemName: "chevron.right")
+                        .font(.title2)
+                })
+                .disabled(Calendar.current.component(.year, from: .now) == year)
+                                    
+                Picker("", selection: $entryMemberType) {
+                    ForEach(EntryMemberType.allCases, id: \.rawValue) { value in
+                        if value != .activities || !activities.isEmpty {
+                            Text(value.rawValue)
+                                .tag(value)
+                        }
+                    }
                 }
-                .fixedSize()
                 .pickerStyle(.menu)
                 .accentColor(.secondary)
                 
                 Spacer()
             }
             
-            let start = Calendar.current.date(from: Calendar.current.dateComponents([.year], from: Calendar.current.startOfDay(for: .now)))!
+            let start = Calendar.current.date(from: DateComponents(year: year, month: 0, day: 0))!
             let days = Calendar.current.dateComponents([.day], from: start, to: .now).day! + 1
             let moods = entries.lastMoods(dayRange: days)
             
@@ -454,22 +496,29 @@ struct YearView: View {
                             .font(.system(size: 13.13))
                             .foregroundColor(.secondary)
                         
-                        let year = Calendar.current.component(.year, from: .now)
                         let daysInMonth = Calendar.current.range(of: .day, in: .month, for: Calendar.current.date(from: DateComponents(year: year, month: month))!)!.count
                         ForEach(1...daysInMonth, id: \.self) { day in
                             let dateComponents = DateComponents(year: year, month: month, day: day, hour: 0, minute: 0, second: 0)
                             let date = Calendar.current.date(from: dateComponents)!
                             
-                            if showMoods {
-                                let mood = date > .now ? nil : Statistics.shared.safeAverage(mood: moods[date]!)
+                            switch entryMemberType {
+                            case .moods:
+                                let mood = date > .now ? nil : moods[date]!.0.safeAverage()
                                 let color: Color = mood == nil ? .secondary : Entry.moodToColor(mood: Int(mood!))
                                 
                                 Circle()
                                     .fill(color)
                                     .frame(width: 13, height: 13)
-                            } else {
+                            case .activities:
+                                let activityExists = date > .now ? false : moods[date]!.1.contains(selectedActivity ?? activities.first!)
+                                let color: Color = activityExists ? .mint : .secondary
+                                
+                                Circle()
+                                    .fill(color)
+                                    .frame(width: 13, height: 13)
+                            case .challenges:
                                 let appearance = context.dailyAppearance(from: date)
-                                let color: LinearGradient = appearance == nil ? .linearGradient(colors: [.secondary], startPoint: .topLeading, endPoint: .bottomTrailing) : .linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                                let color: Color = appearance == nil ? .secondary : .mint
                                 
                                 Circle()
                                     .fill(color)
@@ -487,33 +536,44 @@ struct YearView: View {
             }
             .frame(maxWidth: .infinity, alignment: .center)
             
-            Divider()
-            
-            let moodsTotal = Statistics.shared.totalMoods(moods: moods)
-
-            HStack {
-                ForEach(Entry.iconsFromSadToHappy.indices, id: \.self) { mood in
-                    let color = Entry.moodToColor(mood: mood * 20)
-                    Spacer()
-                    VStack(spacing: 10) {
-                        Image(Entry.moodToIcon(mood: mood * 20))
-                            .resizable()
-                            .renderingMode(.template)
-                            .foregroundColor(color)
-                            .frame(width: 50, height: 50)
-                        Text(moodsTotal[mood].formatted())
-                            .foregroundColor(.theme.secondaryBackground)
-                            .font(.body)
-                            .bold()
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(color)
-                            .cornerRadius(10)
+            if entryMemberType == .moods {
+                
+                Divider()
+                
+                let moodsTotal = moods.totalMoods()
+                
+                HStack {
+                    ForEach(Entry.iconsFromSadToHappy.indices, id: \.self) { mood in
+                        let color = Entry.moodToColor(mood: mood * 20)
+                        Spacer()
+                        VStack(spacing: 10) {
+                            Image(Entry.moodToIcon(mood: mood * 20))
+                                .resizable()
+                                .renderingMode(.template)
+                                .foregroundColor(color)
+                                .frame(width: 50, height: 50)
+                            Text(moodsTotal[mood].formatted())
+                                .foregroundColor(.theme.secondaryBackground)
+                                .font(.body)
+                                .bold()
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(color)
+                                .cornerRadius(10)
+                        }
+                        Spacer()
                     }
-                    Spacer()
                 }
+                .padding()
+            } else if entryMemberType == .activities {
+                Picker("Select Activity", selection: $selectedActivity) {
+                    ForEach(activities) { activity in
+                        Text(activity.title!)
+                            .tag(activity as Activity?)
+                    }
+                }
+                .pickerStyle(.wheel)
             }
-            .padding()
         }
         .padding()
         .background(Color.theme.secondaryBackground)
@@ -524,6 +584,268 @@ struct YearView: View {
     }
 }
 
+struct CalendarView: View {
+    @StateObject var viewRouter: ViewRouter
+    
+    @Environment(\.managedObjectContext) private var context
+    @FetchRequest(sortDescriptors: []) private var entries: FetchedResults<Entry>
+    @FetchRequest(sortDescriptors: []) private var activities: FetchedResults<Activity>
+    
+    @State private var entryMemberType: EntryMemberType = .moods
+    @State private var selectedActivity: Activity? = nil
+    
+    @State private var showDailyAppearance: Bool = false
+    @State private var selectedDailyAppearance: DailyAppearance?
+    
+    @State private var currentDate: Date = .now
+    @State private var currentMonth: Int = 0
+        
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Text("Monthly \(entryMemberType.rawValue)")
+                    .font(.title)
+                    .bold()
+                
+                Spacer()
+            }
+            
+            HStack {
+                Picker("", selection: $entryMemberType) {
+                    ForEach(EntryMemberType.allCases, id: \.rawValue) { value in
+                        if value != .activities || !activities.isEmpty {
+                            Text(value.rawValue)
+                                .tag(value)
+                        }
+                    }
+                }
+                .pickerStyle(.menu)
+                .accentColor(.secondary)
+                
+                Spacer()
+            }
+            
+            let moods = entries.toMoodDictionary()
+            
+            VStack(spacing: 35) {
+                let days = Time.shared.generateWeekDaysArray()
+                
+                HStack(spacing: 20) {
+                    let formatted = extractData()
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(formatted[0])
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        Text(formatted[1])
+                            .font(.title.bold())
+                    }
+                    
+                    Spacer(minLength: 0)
+                    
+                    Button(action: {
+                        withAnimation {
+                            currentMonth -= 1
+                        }
+                    }, label: {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                    })
+                    
+                    Button(action: {
+                        withAnimation {
+                            currentMonth += 1
+                        }
+                    }, label: {
+                        Image(systemName: "chevron.right")
+                            .font(.title2)
+                    })
+                }
+                .padding()
+                
+                HStack(spacing: 0) {
+                    ForEach(days, id: \.self) { day in
+                        Text(day)
+                            .font(.callout)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                
+                let columns = Array(repeating: GridItem(.flexible()), count: 7)
+                LazyVGrid(columns: columns, spacing: 15) {
+                    ForEach(extractDate()) { value in
+                        switch entryMemberType {
+                        case .moods:
+                            cardView(value: value, mood: moods[value.date]?.0)
+                        case .activities:
+                            cardView(value: value, hasActivity: moods[value.date]?.1.contains(selectedActivity ?? activities.first!))
+                        case .challenges:
+                            cardView(value: value, appearance: context.dailyAppearance(from: value.date))
+                        }
+                    }
+                }
+            }
+            
+            Divider()
+            
+            if entryMemberType == .moods {
+                ColorsInformationView()
+            } else if entryMemberType == .activities {
+                Picker("Select Activity", selection: $selectedActivity) {
+                    ForEach(activities) { activity in
+                        Text(activity.title!)
+                            .tag(activity as Activity?)
+                    }
+                }
+                .pickerStyle(.wheel)
+            }
+        }
+        .padding()
+        .background(Color.theme.secondaryBackground)
+        .cornerRadius(20)
+        .sheet(isPresented: $showDailyAppearance) {
+            DailyAppearanceView(appearance: $selectedDailyAppearance)
+        }
+    }
+    
+    // the nullable indicates whether the date exists in entries
+    @ViewBuilder func cardView(value: DateValue, mood: DailyMood?) -> some View {
+        let color: Color = value.day == -1 ? .clear : mood == nil ? .clear : Entry.moodToColor(mood: Int(mood!.unsafeAverage()))
+        VStack {
+            if value.day != -1 {
+                Text(value.day.formatted())
+                    .font(.title3.bold())
+            }
+        }
+        .padding(.vertical, 8)
+        .frame(width: 50, height: 60, alignment: .top)
+        .background(color)
+        .cornerRadius(5)
+    }
+    
+    // the nullable indicates whether the date exists in entries
+    @ViewBuilder func cardView(value: DateValue, hasActivity: Bool?) -> some View {
+        VStack {
+            if value.day != -1 {
+                Text(value.day.formatted())
+                    .font(.title3.bold())
+                if hasActivity != nil && hasActivity! {
+                    Circle()
+                        .fill(.mint)
+                        .frame(width: 10, height: 10)
+                }
+            }
+        }
+        .padding(.vertical, 8)
+        .frame(width: 50, height: 60, alignment: .top)
+    }
+    
+    @ViewBuilder func cardView(value: DateValue, appearance: DailyAppearance?) -> some View {
+        VStack {
+            if value.day != -1 {
+                Text(value.day.formatted())
+                    .font(.title3.bold())
+                if appearance != nil {
+                    Circle()
+                        .fill(.mint)
+                        .frame(width: 10, height: 10)
+                }
+            }
+        }
+        .padding(.vertical, 8)
+        .frame(width: 50, height: 60, alignment: .top)
+        .onTapGesture {
+            if appearance != nil {
+                selectedDailyAppearance = appearance
+                showDailyAppearance = true
+            }
+        }
+    }
+    
+    func extractData() -> [String] {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: Time.shared.localeIdentifier)
+        formatter.dateFormat = "YYYY MMMM"
+        let date = formatter.string(from: getCurrentMonth())
+        return date.components(separatedBy: " ")
+    }
+    
+    func getCurrentMonth() -> Date {
+        return Calendar.current.date(byAdding: .month, value: currentMonth, to: .now)!
+    }
+    
+    func extractDate() -> [DateValue] {
+        let currentMonth = getCurrentMonth()
+        
+        var days = currentMonth.getAllDates().compactMap { date -> DateValue in
+            let day = Calendar.current.component(.day, from: date)
+            return DateValue(day: day, date: date)
+        }
+        
+        // offset day week
+        let firstWeekDay = Calendar.current.component(.weekday, from: days.first?.date ?? .now) + (Time.shared.weekStartsOnSunday() ? 0 : -1)
+        for _ in 0..<firstWeekDay - 1 {
+            days.insert(DateValue(day: -1, date: .now), at: 0)
+        }
+        
+        return days
+    }
+}
+
+struct DateValue: Identifiable {
+    var id: String = UUID().uuidString
+    var day: Int
+    var date: Date
+}
+
+struct WeekMoodView: View {
+    @StateObject var viewRouter: ViewRouter
+    
+    @FetchRequest(sortDescriptors: []) private var entries: FetchedResults<Entry>
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Text("Weekly Mood")
+                    .font(.title)
+                    .bold()
+                
+                Spacer()
+            }
+            
+            let moods = entries.toMoodWeekDictionary()
+            let weekDays = Time.shared.generateWeekDaysArray()
+            
+            Chart {
+                ForEach(Array(moods.keys.sorted()), id: \.self) { key in
+                    let y = graph(moods: moods[key]!)
+                    BarMark(x: .value("Header", weekDays[key - 1]), y: .value("Value", y))
+                        .foregroundStyle(Entry.moodToColor(mood: Int(y)))
+                }
+            }
+            .chartYScale(domain: 0...100)
+            .frame(height: 300)
+            
+            Divider()
+            
+            ColorsInformationView()
+        }
+        .padding()
+        .background(Color.theme.secondaryBackground)
+        .cornerRadius(20)
+    }
+    
+    func graph(moods: [DailyMood]) -> Double {
+        if moods.count == 0 { return 0 }
+        
+        var sum = 0.0
+        for mood in moods {
+            sum += mood.unsafeAverage()
+        }
+        return sum / Double(moods.count)
+    }
+}
+
 // visualizes the user's information
 struct StatsView: View {
     @StateObject var viewRouter: ViewRouter
@@ -531,122 +853,53 @@ struct StatsView: View {
     @Environment(\.managedObjectContext) private var context
     
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry>
-    
-    @State private var chartDetent: PresentationDetent = ChartType.bar.detent
-    
-    @State private var showMoodGraph: Bool = false
-    @State private var showTotalMoodsChart: Bool = false
         
     var body: some View {
         if entries.isEmpty {
-            Text("Not enough data yet to display statistics...")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            NoDataView(message: "Not enought data yet to display statistics...", detail: "We require at least one entry in order to display statistics.")
         } else {
-            ScrollView {
-                Picker("Select the range of entries", selection: $viewRouter.statsViewDayRange) {
-                    ForEach(DayRangeType.allCases, id: \.rawValue) { value in
-                        Text(value.rawValue)
-                            .tag(value)
-                    }
-                }
-                .pickerStyle(.segmented)
-                
-                let days = 15
-                let moods = entries.lastMoods(dayRange: days)
-                
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text("Mood Graph")
-                            .font(.title)
-                            .bold()
-                        
-                        Text("Tap to expand")
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                    }
-                    
-                    let gradient: [Color] = [.white, .accentColor]
-                    Chart {
-                        ForEach(Array(moods.keys).sorted(by: { $0.compare($1) == .orderedAscending }), id: \.self) { key in
-                            let y = Statistics.shared.safeAverage(mood: moods[key]!)
-                            if y != nil {
-                                let weekDayFormatted = key.formatted(Date.FormatStyle().weekday(.abbreviated))
-                                LineMark(x: .value("Day", "\(weekDayFormatted) \(Time.shared.getMonthDay(from: key))"), y: .value("Value", y!))
-                                    .foregroundStyle(Color.accentColor)
-                                    .interpolationMethod(.catmullRom)
-                                AreaMark(x: .value("Day", "\(weekDayFormatted) \(Time.shared.getMonthDay(from: key))"), y: .value("Value", y!))
-                                    .foregroundStyle(.linearGradient(colors: gradient.enumerated().map { (index, color) in
-                                        return color.opacity(Double(index) / 2.0)
-                                    }, startPoint: .bottom, endPoint: .top))
-                                    .interpolationMethod(.catmullRom)
-                            }
-                        }
-                    }
-                    .chartXAxis(.hidden)
-                    .chartYScale(domain: 0...100)
-                    .frame(height: 150)
-                }
-                .padding()
-                .background(Color.theme.secondaryBackground)
-                .cornerRadius(20)
-                .padding()
-                .onTapGesture {
-                    showMoodGraph = true
-                }
-                
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text("Total Moods Chart")
-                            .font(.title)
-                            .bold()
-                        
-                        Text("Tap to expand")
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                    }
-                    
-                    let moodsTotal = Statistics.shared.totalMoods(moods: moods)
-
-                    Chart {
-                        ForEach(Entry.colorsFromSadToHappy.indices, id: \.self) { mood in
-                            BarMark(x: .value("Header", Entry.moodToHeader(mood: mood * 20)), y: .value("Value", moodsTotal[mood]))
-                                .foregroundStyle(Color.accentColor)
-                        }
-                    }
-                    .chartXAxis(.hidden)
-                    .frame(height: 150)
-                }
-                .padding()
-                .background(Color.theme.secondaryBackground)
-                .cornerRadius(20)
-                .padding()
-                .onTapGesture {
-                    showTotalMoodsChart = true
-                }
-                
-                TotalActivitiesChart(viewRouter: viewRouter)
-                    .padding()
-                                    
-                YearView(viewRouter: viewRouter)
-                    .environment(\.managedObjectContext, context)
+            VStack {
+                Toggle("Show All Time Statistics", isOn: $viewRouter.showAllTimeStatistics)
                     .padding()
                 
-                MakeSpaceForTabBar()
+                if !viewRouter.showAllTimeStatistics {
+                    Picker("Select the range of entries", selection: $viewRouter.statsViewDayRange) {
+                        ForEach(DayRangeType.allCases, id: \.rawValue) { value in
+                            Text(value.rawValue)
+                                .tag(value)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding()
+                }
+                
+                ScrollView {
+                    if viewRouter.showAllTimeStatistics {
+                        WeekMoodView(viewRouter: viewRouter)
+                            .padding()
+                        
+                        CalendarView(viewRouter: viewRouter)
+                            .environment(\.managedObjectContext, context)
+                            .padding()
+                        
+                        YearView(viewRouter: viewRouter)
+                            .environment(\.managedObjectContext, context)
+                            .padding()
+                    } else {
+                        MoodGraphView(viewRouter: viewRouter)
+                            .padding()
+                        
+                        TotalMoodsChart(viewRouter: viewRouter)
+                            .padding()
+                        
+                        TotalActivitiesChart(viewRouter: viewRouter)
+                            .padding()
+                    }
+                    
+                    MakeSpaceForTabBar()
+                }
             }
             .background(Color.theme.background)
-            .sheet(isPresented: $showMoodGraph) {
-                MoodGraphView(viewRouter: viewRouter)
-                    .presentationDetents([.medium, .fraction(0.4)])
-            }
-            .sheet(isPresented: $showTotalMoodsChart) {
-                TotalMoodsChart(viewRouter: viewRouter, chartDetent: $chartDetent)
-                    .presentationDetents([chartDetent], selection: $chartDetent)
-                    .onDisappear {
-                        chartDetent = ChartType.bar.detent
-                    }
-            }
         }
     }
 }

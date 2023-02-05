@@ -118,7 +118,7 @@ struct EntriesView: View {
                 
                 let letters = " abcd efghi jklmn opqr stuv wxyz "
                 
-                for index in 1...400 {
+                for index in 1...50 {
                     if Int.random(in: 0...4) == 4 { continue }
                     let entry = Entry(context: context)
                     entry.quote = quotes!.randomElement()!
@@ -128,7 +128,8 @@ struct EntriesView: View {
                         entry.addToActivities(activity)
                         try? context.save()
                     }
-                    let length = Int.random(in: 10...200)
+                    //let length = Int.random(in: 10...200)
+                    let length = 10
                     var note = ""
                     for _ in 0..<length {
                         note += String(letters.randomElement()!)
@@ -139,6 +140,7 @@ struct EntriesView: View {
                     try? context.save()
                 }
             }
+            
             if entries.count > 0 {
                 List {
                     ForEach(entries) { entry in
@@ -163,12 +165,7 @@ struct EntriesView: View {
                 .listStyle(.plain)
                 .padding()
             } else {
-                VStack {
-                    Spacer()
-                    Text("No entries yet...")
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
+                NoDataView(message: "No entries yet...", detail: "Tap the Check-In button in the Home view to create a new entry.")
             }
         }
         .edgesIgnoringSafeArea(.bottom)

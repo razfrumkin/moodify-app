@@ -35,3 +35,8 @@ extension Entry {
         return colorsFromSadToHappy[mood / 20]
     }
 }
+
+extension Activity {
+    static let minimumNameLength: Int = 3
+    static let maximumNameLength: Int = 15
+}

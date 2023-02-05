@@ -49,7 +49,7 @@ struct DetailedEntryView: View {
                 }
                 .padding(.all, 25)
                 .padding(.vertical, 20)
-                .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                .background(.purple)
                 
                 if entry!.activities != nil && entry!.activities!.count > 0 {
                     VStack(alignment: .leading, spacing: 10) {
@@ -65,7 +65,7 @@ struct DetailedEntryView: View {
                                         .font(.title3)
                                         .foregroundColor(.white)
                                         .frame(width: 200, height: 60)
-                                        .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .background(.purple)
                                         .cornerRadius(10)
                                 }
                             }
@@ -105,7 +105,7 @@ struct DetailedEntryView: View {
                                 .font(.body.italic().bold())
                         }
                         .padding()
-                        .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .background(.purple)
                         .cornerRadius(15)
                     }
                     .padding()
@@ -128,7 +128,7 @@ struct DetailedEntryView: View {
                                 .foregroundColor(.white.opacity(0.9))
                         }
                         .padding()
-                        .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .background(.purple)
                         .cornerRadius(15)
                     }
                     .padding()
@@ -142,7 +142,7 @@ struct DetailedEntryView: View {
             }
             .sheet(isPresented: $showDetailedLikedQuote) {
                 DetailedQuoteView(quote: $selectedQuote, contentColor: .white.opacity(0.9), authorColor: .white.opacity(0.6))
-                    .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .background(.purple)
             }
             .sheet(isPresented: $showDailyAppearance) {
                 DailyAppearanceView(appearance: $selectedDailyAppearance)

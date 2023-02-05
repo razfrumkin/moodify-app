@@ -11,19 +11,19 @@ import SwiftUI
 struct NewEntryView: View {
     @StateObject var viewRouter: ViewRouter
     
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var context
     @FetchRequest(sortDescriptors: []) private var quotes: FetchedResults<Quote>
     @FetchRequest(sortDescriptors: []) private var activities: FetchedResults<Activity>
             
     @State private var selectedActivities: [Activity] = []
-    
-    @Binding var isActive: Bool
-        
+            
     @State private var showSelectQuote: Bool = false
     @State private var showNewActivityView: Bool = false
     @State private var showModifyActivityDialog: Bool = false
     @State private var showRenameActivityAlert: Bool = false
     @State private var showDeleteActivityAlert: Bool = false
+    @State private var invalidActivityTitle: Bool = false
     
     @State private var selectedActivityToModify: Activity?
     @State private var newPossibleActivityTitle: String = ""
@@ -44,7 +44,7 @@ struct NewEntryView: View {
             }
             ZStack {
                 Rectangle()
-                    .fill(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(.purple)
                     .frame(height: 400)
                 Button(action: {
                     showSelectQuote = true
@@ -90,7 +90,7 @@ struct NewEntryView: View {
                 Group {
                     HStack {
                         Label("Add your mood", systemImage: "face.smiling")
-                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                            .foregroundColor(.purple)
                         Spacer()
                         
                         Image(Entry.moodToIcon(mood: Int(mood)))
@@ -106,39 +106,44 @@ struct NewEntryView: View {
                 Group {
                     HStack {
                         Label("Select your activites", systemImage: "checkmark.circle.fill")
-                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                            .foregroundColor(.purple)
                         Spacer()
                         Button(action: {
                             showNewActivityView = true
                         }, label: {
                             Image(systemName: "plus")
                                 .frame(width: 30, height: 30)
-                                .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)                                .cornerRadius(15)
+                                .foregroundColor(.purple)
                                 .padding(.leading)
                                 .font(.title3)
                         })
                     }
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3)) {
-                        ForEach(activities) { activity in
-                            ActivityView(activity: activity) { isSelected in
-                                if isSelected {
-                                    selectedActivities.append(activity)
-                                } else {
-                                    selectedActivities.remove(at: selectedActivities.firstIndex(of: activity)!)
+                    
+                    if activities.isEmpty {
+                        Text("No activities... Tap the + to add an activity!")
+                    } else {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3)) {
+                            ForEach(activities) { activity in
+                                ActivityView(activity: activity) { isSelected in
+                                    if isSelected {
+                                        selectedActivities.append(activity)
+                                    } else {
+                                        selectedActivities.remove(at: selectedActivities.firstIndex(of: activity)!)
+                                    }
                                 }
+                                .simultaneousGesture(LongPressGesture().onEnded { _ in
+                                    selectedActivityToModify = activity
+                                    showModifyActivityDialog = true
+                                })
                             }
-                            .simultaneousGesture(LongPressGesture().onEnded { _ in
-                                selectedActivityToModify = activity
-                                showModifyActivityDialog = true
-                            })
-                        }
-                        .confirmationDialog("", isPresented: $showModifyActivityDialog) {
-                            Button("Rename") {
-                                newPossibleActivityTitle = selectedActivityToModify!.title!
-                                showRenameActivityAlert = true
-                            }
-                            Button("Delete", role: .destructive) {
-                                showDeleteActivityAlert = true
+                            .confirmationDialog("", isPresented: $showModifyActivityDialog) {
+                                Button("Rename") {
+                                    newPossibleActivityTitle = selectedActivityToModify!.title!
+                                    showRenameActivityAlert = true
+                                }
+                                Button("Delete", role: .destructive) {
+                                    showDeleteActivityAlert = true
+                                }
                             }
                         }
                     }
@@ -146,7 +151,7 @@ struct NewEntryView: View {
                 
                 Group {
                     Label("Add a daily note", systemImage: "square.text.square.fill")
-                        .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                        .foregroundColor(.purple)
                     TextField("Type your note here...", text: $note, axis: .vertical)
                         .font(.body)
                         .padding()
@@ -158,7 +163,7 @@ struct NewEntryView: View {
                 Group {
                     HStack {
                         Label("Was this day productive?", systemImage: "bolt.fill")
-                            .foregroundLinearGradient(colors: Utilities.gradient, startPoint: .leading, endPoint: .trailing)
+                            .foregroundColor(.purple)
                         
                         Spacer()
                         
@@ -173,12 +178,12 @@ struct NewEntryView: View {
             
             Button("Save") {
                 saveEntry()
-                isActive = false
+                dismiss()
             }
             .padding()
             .foregroundColor(.white)
             .frame(width: 200, height: 50)
-            .background(.linearGradient(colors: Utilities.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+            .background(.purple)
             .cornerRadius(10)
         }
         .sheet(isPresented: $showSelectQuote) {
@@ -208,15 +213,19 @@ struct NewEntryView: View {
             TextField("Activity title here...", text: $newPossibleActivityTitle)
             
             Button("Proceed") {
-                selectedActivityToModify!.title = newPossibleActivityTitle
-                                                    
-                do {
-                    try context.save()
-                } catch {
-                    fatalError("Unresolved CoreData error: Could not rename the activity's title")
+                if newPossibleActivityTitle.count >= Activity.minimumNameLength && newPossibleActivityTitle.count <= Activity.maximumNameLength {
+                    selectedActivityToModify!.title = newPossibleActivityTitle
+                    
+                    do {
+                        try context.save()
+                    } catch {
+                        fatalError("Unresolved CoreData error: Could not rename the activity's title")
+                    }
+                    
+                    newPossibleActivityTitle = ""
+                } else {
+                    invalidActivityTitle = true
                 }
-                
-                newPossibleActivityTitle = ""
             }
             Button("Cancel", role: .cancel) {
                 newPossibleActivityTitle = ""
@@ -224,6 +233,10 @@ struct NewEntryView: View {
         }
         .alert("Delete Activity", isPresented: $showDeleteActivityAlert, actions: {
             Button("Delete", role: .destructive) {
+                if let index = selectedActivities.firstIndex(of: selectedActivityToModify!) {
+                    selectedActivities.remove(at: index)
+                }
+                
                 context.delete(selectedActivityToModify!)
                 
                 do {
@@ -237,6 +250,13 @@ struct NewEntryView: View {
             }
         }, message: {
             Text("Are you sure you want to delete this activity? Deleting this activity will delete every instance of this activity from every entry.")
+        })
+        .alert("Invalid Title", isPresented: $invalidActivityTitle, actions: {
+            Button("Cancel", role: .cancel) {
+                
+            }
+        }, message: {
+                Text("Activity title must be within \(Activity.minimumNameLength) to \(Activity.maximumNameLength) characters.")
         })
         .onAppear {
             selectedQuote = nil
@@ -281,7 +301,7 @@ struct NewEntryView_Previews: PreviewProvider {
     static var previews: some View {
         let persistenceContainer = PersistenceController.shared
         
-        NewEntryView(viewRouter: ViewRouter(), isActive: .constant(true))
+        NewEntryView(viewRouter: ViewRouter())
             .environment(\.managedObjectContext, persistenceContainer.container.viewContext)
     }
 }
