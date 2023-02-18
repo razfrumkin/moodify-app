@@ -12,7 +12,7 @@ struct InformationButton: View {
     @State private var showMessage = false
     let title: String
     let message: String
-    let color: Color = .accentColor // default value of the application's accent color
+    let color: Color = .theme.color
 
     var body: some View {
         ZStack {

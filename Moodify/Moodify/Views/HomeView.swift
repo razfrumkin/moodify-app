@@ -81,7 +81,7 @@ struct HomeView: View {
                                     
                                     Spacer()
                                     VStack(spacing: 5) {
-                                        Text(weekDay.formatted(Date.FormatStyle().weekday(.abbreviated)))
+                                        Text(weekDay.formatted(Date.FormatStyle().locale(Locale(identifier: Time.shared.localeIdentifier)).weekday(.abbreviated)))
                                             .foregroundColor(.theme.inverseBackground)
                                             .font(.footnote)
                                         Text("\(Time.shared.getMonthDay(from: weekDay))")

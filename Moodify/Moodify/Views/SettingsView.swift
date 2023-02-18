@@ -62,6 +62,8 @@ struct SettingsView: View {
                     }
             }
             
+            // this section should only be used in debug mode to generate random entries for testing purposes
+            /*
             Section("Debugging") {
                 Button("Generate Entries (\(entries.count) entrie(s))") {
                     let quotes = try? context.fetch(Quote.fetchRequest())
@@ -69,7 +71,7 @@ struct SettingsView: View {
                     
                     let letters = " abcd efghi jklmn opqr stuv wxyz "
                     
-                    for index in 1...50 {
+                    for index in 1...100 {
                         if Int.random(in: 0...4) == 4 { continue }
                         let entry = Entry(context: context)
                         entry.quote = quotes!.randomElement()!
@@ -90,6 +92,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            */
         }
         .alert("Delete Entries Data", isPresented: $showDeleteEntriesAlert, actions: {
             Button("Delete", role: .destructive) {
