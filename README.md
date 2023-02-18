@@ -7,9 +7,9 @@ The purpose of the application is to assist the user's mood and motivate the use
 ## Features
 
 * Daily Challenge - Every day and new daily challenge will appear and user will try to complete it.
-* Assistance - The application will suggest ways to make the users happier depends on the latest information they has inputted.
-* Quotes Feed - The application has a varios amount of quotes that could be interpreted as motivational and inspirational. The users can save those quotes if they likes them.
-* Statistics - The users can reflect on their information such as activities, moods and daily challenges completed throughout their history using the app.
+* Assistance - The application will suggest ways to make the users happier depending on the latest information they have inputted.
+* Quotes Feed - The application has a varios amount of quotes that could be interpreted as motivational and inspirational. Users can save those quotes if they like them.
+* Statistics - Users can reflect on their information such as activities, moods and daily challenges completed throughout their history using the app.
 * Light and dark mode support.
 
 ## Screenshots
