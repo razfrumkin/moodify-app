@@ -1,0 +1,155 @@
+{
+    "panels": [
+        {
+            "header": "You've been very unhappy in the last couple days.",
+            "items": [
+                {
+                    "title": "Try to smile more.",
+                    "detail": "We smile because we’re happy, and smiling causes the brain to release dopamine, which makes us happier.",
+                    "optionalDetail": "Researchers have found that the link between smiling and happiness could be attributed to the “facial feedback hypothesis,” where facial expressions may have a modest influence on emotions.\nThat does not mean you have to go around with a fake smile plastered on your face all the time. But the next time you find yourself feeling low, crack a smile and see what happens. Or try starting each morning by smiling at yourself in the mirror.",
+                    "sources": ["https://psycnet.apa.org/doiLanding?doi=10.1037%2Fbul0000194"]
+                },
+                {
+                    "title": "Try to acknowledge the unhappy moments.",
+                    "detail": "A positive attitude is generally a good thing, but bad things happen to everyone. It’s just part of life.",
+                    "optionalDetail": "If you get some bad news, make a mistake, or just feel like you’re in a funk, don’t try to pretend you’re happy.\nAcknowledge the feeling of unhappiness, letting yourself experience it for a moment. Then shift your focus toward what made you feel this way and what it might take to recover.\nWould a deep breathing exercise help? A long walk outside? Talking it over with someone?\nLet the moment pass and take care of yourself. Remember, no one’s happy all the time.",
+                    "sources": []
+                },
+                {
+                    "title": "Avoid comparing yourself to others.",
+                    "detail": "Whether it happens on social media, at work, or even at a yoga class, it’s easy to fall into a place where you’re comparing yourself to others.",
+                    "optionalDetail": "You may experience more discontent, lower self-esteem, and even depression and anxiety.\nIt can take practice to stop comparing yourself to others, but it’s worth it for the benefit of having your inner peace and happiness.\nYou can start with some of the other tips on this list that can help draw your attention inward to yourself, such as deep breathing and journaling. You may also consider talking with a therapist for perspective.",
+                    "sources": []
+                }
+            ]
+        },
+        {
+            "header": "You've been feeling down in the last couple days.",
+            "items": [
+                {
+                    "title": "Try to keep a journal.",
+                    "detail": "A journal is a good way to organize your thoughts, analyze your feelings, and make plans.",
+                    "optionalDetail": "And you don’t have to be a literary genius or write volumes to benefit.\nIt can be as simple as jotting down a few thoughts before you go to bed. If putting certain things in writing makes you nervous, you can always shred it when you’ve finished. It’s the process that counts.",
+                    "sources": []
+                },
+                {
+                    "title": "You should ditch your phone more.",
+                    "detail": "There’s mounting evidence to support the fact that excessive phone use can lead to changes in the brain and impact your mood, with one review even revealing more serious cognitive and emotional changes in adolescents and young adults.",
+                    "optionalDetail": "Turn off all the electronics and put those earbuds away for at least 1 hour once a week. They’ll still be there for you later if you want them.\nIf you haven’t unplugged in a while, you might be surprised at the difference it makes. Let your mind wander free for a change. Read. Meditate. Take a walk and pay attention to your surroundings. Be sociable. Or be alone. Just be.",
+                    "sources": ["https://www.frontiersin.org/articles/10.3389/fpsyt.2021.669042/full"]
+                },
+                {
+                    "title": "We suggest that you get into nature.",
+                    "detail": "Spending 30 minutes or more a week in green spaces can help lower blood pressure and the chances of developing depression, according to one study.",
+                    "optionalDetail": "Your green space could be anything such as your neighborhood park, your own backyard, or a rooftop garden — anywhere you can appreciate and enjoy nature and fresh air.\nBetter yet, add some outdoor exercise into the mix for extra benefit. The same aforementioned study found that people who spent time in green spaces were also more likely to exercise more frequently and for longer each time.",
+                    "sources": ["https://www.nature.com/articles/srep28551?utm_medium=affiliate&utm_source=commission_junction&utm_campaign=CONR_PF018_ECOM_GL_PHSS_ALWYS_DEEPLINK&utm_content=textlink&utm_term=PID100090071&CJEVENT=99b91a43998211ed8001986a0a18b8fb"]
+                },
+                {
+                    "title": "Try to meditate.",
+                    "detail": "There are many methods of meditation to explore. They can involve movement, focus, spirituality, or a combination of all three.\nMeditation doesn’t have to be complicated. It can be as simple as sitting quietly with your own thoughts for 5 minutes. Even the deep breathing exercises mentioned earlier can serve as a form of meditation.",
+                    "optionalDetail": "",
+                    "sources": []
+                }
+            ]
+        },
+        {
+            "header": "You've been feeling pretty neutral lately.",
+            "items": [
+                {
+                    "title": "Take yourself out.",
+                    "detail": "No one to go out with? Well, what rule says you can’t go out alone?\nConsider going to your favorite restaurant, taking in a movie, or going on that trip you’ve always dreamed of.\nEven if you’re a social butterfly, spending some deliberate time alone can help you reconnect with the activities that truly make you happy.",
+                    "optionalDetail": "",
+                    "sources": []
+                },
+                {
+                    "title": "Reevaluate your goals.",
+                    "detail": "People change, so try thinking about where you’re heading and consider if that’s still where you want to go. There’s no shame in changing your plans.\nLet go of any goals that no longer serve you, even if they sound nice on paper.",
+                    "optionalDetail": "",
+                    "sources": []
+                },
+                {
+                    "title": "Try to exercise more.",
+                    "detail": "Exercise isn’t just for your body. Regular exercise can help reduce stress, feelings of anxiety, and symptoms of depression while boosting self-esteem and happiness.",
+                    "optionalDetail": "Even a small amount of physical activity can make a difference. You don’t have to train for a triathlon or scale a cliff — unless that’s what makes you happy, of course.\nThe trick is to not overexert yourself. If you suddenly throw yourself into a strenuous routine, you may just end up frustrated (and sore).\nRemind yourself of any fun activities you once enjoyed but that have fallen by the wayside. Or you could consider starting activities you always wanted to try, such as golf, bowling, or dancing.\n\nConsider these exercises:\n- Take a walk around the block every night after dinner.\n- Sign up for a beginner’s class in yoga or tai chi.\n- Start your day with 5 minutes of stretching.",
+                    "sources": []
+                },
+                {
+                    "title": "You should probably get more sleep.",
+                    "detail": "Most adults need at least 7 hours of sleep every night. If you find yourself fighting the urge to nap during the day or just generally feel like you’re in a fog, your body may be telling you it needs more rest.",
+                    "optionalDetail": "No matter how much our modern society steers us toward less sleep, we know that adequate sleep is vital to good health, brain function, and emotional well-being. Getting enough sleep also reduces your risk of developing certain chronic illnesses, such as heart disease, depression, and diabetes.\nIf you consistently have problems sleeping, consider talking with a doctor. You may have a sleep disorder that requires treatment.\n\nHere are a few tips to help you build a better sleep routine:\n- Write down how many hours of sleep you get each night and how rested you feel. After a week, you should have a better idea how you’re doing.\n- Go to bed and wake up at the same time every day, including on weekends.\n- Reserve the hour before bed as quiet time. Take a bath, read, or do something relaxing. Avoid heavy eating and drinking.\n- Keep your bedroom dark, cool, and quiet.\n- Invest in some good bedding.\n- If you have to take a nap, try limiting it to 20 minutes.",
+                    "sources": ["https://www.cdc.gov/sleep/about_sleep/how_much_sleep.html", "https://www.nhlbi.nih.gov/health/sleep-deprivation", "https://www.healthline.com/health/sleep-disorders-warning-signs"]
+                },
+                {
+                    "title": "Practice gratitude.",
+                    "detail": "Simply being grateful can give your mood a big boost, among other benefits. For example, a two-part study found that practicing gratitude can have a significant impact on feelings of hope and happiness.",
+                    "optionalDetail": "You might try starting each day by acknowledging one thing you’re grateful for. You can do this while you’re brushing your teeth or just waiting for that snoozed alarm to go off.\nAs you go about your day, consider keeping an eye out for pleasant things in your life. They can be big things, such as knowing that someone loves you or getting a well-deserved promotion.\nBut they can also be little things, such as a co-worker who offered you a cup of coffee or the neighbor who waved to you. Maybe it could even just be the warmth of the sun on your skin.\nWith a little practice, you may even become more aware of all the positive things around you.",
+                    "sources": ["https://www.tandfonline.com/doi/abs/10.1080/17439760.2018.1424924?journalCode=rpos20"]
+                }
+            ]
+        },
+        {
+            "header": "You've been doing well for the last couple days.",
+            "items": [
+                {
+                    "title": "Have a go and try to declutter.",
+                    "detail": "Decluttering sounds like a big project, but setting aside just 20 minutes a week can have a big impact.",
+                    "optionalDetail": "What can you do in 20 minutes? Lots.\nSet a timer on your phone and take 15 minutes to tidy up a specific area of one room — say, your closet or that out-of-control junk drawer. Put everything in its place and toss or give away any extra clutter that’s not serving you anymore.",
+                    "sources": []
+                },
+                {
+                    "title": "Create a thought list.",
+                    "detail": "You arrive for an appointment with 10 minutes to spare. What do you do with that time? Pick up your cell phone to scroll through social media? Worry about the busy week you have ahead of you?\nTrying to take control of your thoughts during these brief windows of time can offer benefits.",
+                    "optionalDetail": "At the start of each month, make a short list of happy memories or things you’re looking forward to on a small piece of paper or on your phone.\nWhen you find yourself waiting for a ride, standing in line at the grocery store, or just with a few minutes to kill, break out the list. You can even use it when you’re just generally feeling down and need to change up your thoughts.",
+                    "sources": []
+                },
+                {
+                    "title": "Plan a trip.",
+                    "detail": "With an ever-hectic schedule, sometimes it’s easy to forget to schedule something else that’s crucial to your well-being: time off. You can reap even more benefits by planning a trip, whether it’s close to home or somewhere further away.",
+                    "optionalDetail": "Research also backs both the mental and physical benefits of taking that much-needed vacation. In one such study, researchers looked at stress and heart rate as it relates to taking a vacation. They found that not only did the vacation itself reduce stress, but the weeks leading up to that planned trip had similar effects.",
+                    "sources": ["https://www.tandfonline.com/doi/abs/10.1080/08870446.2019.1687699?journalCode=gpsh20"]
+                },
+                {
+                    "title": "Try to drink more water.",
+                    "detail": "The brain is very sensitive to dehydration, and lack of water can cause drops in mood. If you find yourself feeling down, make sure you drink enough water. Doctors recommend at least eight eight-ounce glasses of water each day.",
+                    "optionalDetail": "",
+                    "sources": ["https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6603652/", "https://www.goodnet.org/articles/hydration-stations-help-combat-childhood-obesity"]
+                }
+            ]
+        },
+        {
+            "header": "You've been feeling good lately.",
+            "items": [
+                {
+                    "title": "Relax and soak in a warm bath.",
+                    "detail": "Create your own at-home remedy by relaxing in a hot bath. Even just 10 to 15 minutes of a warm soak has physical and mental healing properties.",
+                    "optionalDetail": "",
+                    "sources": ["https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6011066/"]
+                },
+                {
+                    "title": "Put on your favorite outfit.",
+                    "detail": "Clothes influence how people feel and interact with the world. Wearing your favorite outfit is an easy fix for a bad mood that will inspire confidence throughout the day.",
+                    "optionalDetail": "",
+                    "sources": ["https://www.goodnet.org/articles/7-steps-towards-mood-makeover"]
+                },
+                {
+                    "title": "Dance around.",
+                    "detail": "Human beings have always turned to dance as a form of therapy, from ancient Native American rituals and expressive meditation practices to modern dance/movement therapy. Put on some happy music, push the couch aside, and dance it out to feel better.",
+                    "optionalDetail": "",
+                    "sources": ["https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2913884/"]
+                },
+                {
+                    "title": "Have fun spending some time gardening.",
+                    "detail": "Nurturing plants has major benefits for your mind, body, and soul. A Dutch study found that tending a garden for just 30 minutes a day promotes wellbeing. You can start a small herb garden in your kitchen, or plant an outdoor garden.",
+                    "optionalDetail": "",
+                    "sources": ["https://journals.sagepub.com/doi/abs/10.1177/1359105310365577"]
+                },
+                {
+                    "title": "Do something nice for someone else.",
+                    "detail": "Doing good things for someone else makes you feel good, too. Buy a stranger a coffee. Donate to a charity. Cook dinner for a friend. Kind gestures such as these lead to greater happiness.",
+                    "optionalDetail": "",
+                    "sources": ["https://www.goodnet.org/articles/7-scientific-facts-about-benefit-doing-good", "https://greatergood.berkeley.edu/article/item/kindness_makes_you_happy_and_happiness_makes_you_kind"]
+                }
+            ]
+        }
+    ]
+}

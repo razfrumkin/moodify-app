@@ -1,0 +1,36 @@
+{
+    "library": [
+        {
+            "title": "Nature",
+            "icons": ["globe.americas.fill", "sun.min.fill", "moon.fill", "sparkles", "cloud.fill", "wind", "drop.fill", "flame.fill", "bolt.fill", "leaf.fill", "carrot.fill", "atom"]
+        },
+        {
+            "title": "Animals",
+            "icons": ["hare.fill", "tortoise.fill", "lizard.fill", "bird.fill", "ant.fill", "ladybug.fill", "fish.fill", "pawprint.fill"]
+        },
+        {
+            "title": "Fitness",
+            "icons": ["figure.walk", "figure.run", "figure.roll", "figure.baseball", "figure.cooldown", "figure.strengthtraining.functional", "figure.lacrosse", "figure.mind.and.body", "figure.outdoor.cycle", "figure.skating", "figure.yoga", "figure.flexibility", "dumbbell.fill", "tennis.racket", "soccerball.inverse", "baseball.fill", "basketball.fill", "football.fill", "cricket.ball.fill", "tennisball.fill", "volleyball.fill"]
+        },
+        {
+            "title": "Health",
+            "icons": ["lungs.fill", "eye.fill", "ear.fill", "heart.fill", "cross.case.fill", "microbe.fill", "medical.thermometer.fill", "bandage.fill", "syringe.fill", "facemask.fill", "pill.fill", "ivfluid.bag.fill", "waveform.path.ecg.rectangle.fill"]
+        },
+        {
+            "title": "Home",
+            "icons": ["house.fill", "lightbulb.fill", "fanblades.fill", "lamp.desk.fill", "spigot.fill", "shower.fill", "bathtub.fill", "bed.double.fill", "sofa.fill", "washer.fill", "dryer.fill", "dishwasher.fill", "oven.fill", "microwave.fill", "refrigerator.fill", "sink.fill", "toilet.fill", "av.remote.fill", "tv.fill"]
+        },
+        {
+            "title": "Transportation",
+            "icons": ["airplane", "car.fill", "bolt.car.fill", "tram.fill", "cablecar.fill", "ferry.fill", "train.side.front.car", "box.truck.fill", "scooter", "sailboat.fill", "bicycle"]
+        },
+        {
+            "title": "Editing",
+            "icons": ["pencil", "eraser.fill", "scissors", "paintbrush.fill", "paintbrush.pointed.fill", "paintpalette.fill"]
+        },
+        {
+            "title": "Devices",
+            "icons": ["gamecontroller.fill", "headphones", "camera.fill", "clock.fill", "stopwatch.fill", "hourglass"]
+        }
+    ]
+}

@@ -1,0 +1,24 @@
+{
+    "features": [
+        {
+            "icon": "calendar",
+            "title": "Input each day of yours",
+            "detail": "Add information such as your mood, activities you have done and more."
+        },
+        {
+            "icon": "plus",
+            "title": "Create activities",
+            "detail": "Create activities by giving them a title and an icon. When checking-in, your can select the activities you've completed throughout your day."
+        },
+        {
+            "icon": "chart.bar.xaxis",
+            "title": "View your data",
+            "detail": "Reflect on how you've been feeling and what activities you have done"
+        },
+        {
+            "icon": "face.smiling",
+            "title": "Help make you feel better",
+            "detail": "Based on the information you input daily, we can try to assist you to make you feel better."
+        }
+    ]
+}
