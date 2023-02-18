@@ -75,7 +75,7 @@ struct QuotesView: View {
     @Environment(\.managedObjectContext) private var context // database instance
     @FetchRequest(sortDescriptors: []) private var quotes: FetchedResults<Quote> // quotes data
     
-    private let maximumLikedQuotes: Int = 10
+    private let maximumLikedQuotes: Int = 50
     
     @State private var quoteIndex: Int = 0
     @State private var likedQuotesCount: Int = 0
