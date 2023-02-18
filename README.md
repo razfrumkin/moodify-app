@@ -1,9 +1,7 @@
 # Moodify
 
 <img src="https://i.postimg.cc/rFmD5Z5G/image.png)" align="left" width=128 height=128> Moodify is an iOS application that lets users track their moods and activities throughout their day, reflect on their data and will try to assist its users based on their mood.
-
 The way it works is the user will receive a notification every day and will check-in the application. The user will input information such as the activities he has done, their mood throughout the day and could also optionally add a note.
-
 The purpose of the application is to assist the user's mood and motivate the user to do positive activities in their day-to-day life.
 
 ## Features
