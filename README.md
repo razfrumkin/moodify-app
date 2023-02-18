@@ -1,6 +1,6 @@
 # Moodify
 
-<img src="Moodify/Moodify/Assets.xcassets/appstore.imageset/appstore.png" align="left" width=128 height=128> Moodify is an iOS application that lets users track their moods and activities throughout their day, reflect on their data and will try to assist its users based on their mood.
+<img src="https://postimg.cc/Lhc4pTCh" align="left" width=128 height=128> Moodify is an iOS application that lets users track their moods and activities throughout their day, reflect on their data and will try to assist its users based on their mood.
 
 ## Development
 
