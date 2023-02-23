@@ -102,7 +102,6 @@ struct HomeView: View {
                             .shadow(color: .theme.inverseBackground.opacity(0.1), radius: 10, y: 5))
                         .padding()
                         
-                        
                         VStack(spacing: 0) {
                             HStack {
                                 Text("Options")
@@ -332,12 +331,12 @@ struct HomeView: View {
             }
             .onAppear {
                 if dailyChallengeID.isEmpty {
+                    dailyChallengeDate = Calendar.current.startOfDay(for: .now)
                     dailyChallengeID = generateDailyChallengeID()
                 }
                 
-                let dailyChallengeDateClean = Calendar.current.startOfDay(for: dailyChallengeDate)
-                let daysBetween = Calendar.current.dateComponents([.day], from: dailyChallengeDateClean, to: .now).day!
-                if daysBetween > 0 {
+                if !Calendar.current.isDateInToday(dailyChallengeDate) {
+                    dailyChallengeDate = Calendar.current.startOfDay(for: .now)
                     dailyChallengeID = generateDailyChallengeID()
                 }
                 

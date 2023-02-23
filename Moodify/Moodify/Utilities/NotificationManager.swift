@@ -75,7 +75,7 @@ class NotificationManager {
     
     // this function cancels ALL notifications
     func cancelAllNotifications() {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderNotificationCategoryIdentifier])
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
     
     // returns the default reminder time incase the user hasn't set a time for the daily reminder notification

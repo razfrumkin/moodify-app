@@ -94,7 +94,6 @@ struct PersistenceController {
     
     init() {
         container = NSPersistentContainer(name: "Database")
-        
         container.loadPersistentStores { description, error in if let error = error as NSError? {
             fatalError("Unresolved CoreData error: \(error)")
         }}
