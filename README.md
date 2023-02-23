@@ -1,16 +1,14 @@
 # Moodify
 
-<img src="https://i.postimg.cc/rFmD5Z5G/image.png)" align="left" width=128 height=128> Moodify is an iOS application that lets users track their moods and activities throughout their day, reflect on their data and will try to assist its users based on their mood.
-The way it works is the user will receive a notification every day and will check-in the application. The user will input information such as the activities he has done, their mood throughout the day and could also optionally add a note.
-The purpose of the application is to assist the user's mood and motivate the user to do positive activities in their day-to-day life.
+<img src="https://i.postimg.cc/rFmD5Z5G/image.png)" align="left" width=128 height=128> Moodify is an iOS app which allows users to keep track of their moods and activities throughout the day, analyze their data, and attemp to assist them based on their mood. The user will check in to the application each day and will receive a notification. The user the optionally add a note and provide information such as the activities they have completed and their mood throughout the day. The application's goal is to improve the user's mood and inspire them to engage in positive daily activities.
 
 ## Features
 
-* Daily Challenge - Every day and new daily challenge will appear and user will try to complete it.
-* Assistance - The application will suggest ways to make the users happier depending on the latest information they have inputted.
-* Quotes Feed - The application has a varios amount of quotes that could be interpreted as motivational and inspirational. Users can save those quotes if they like them.
-* Statistics - Users can reflect on their information such as activities, moods and daily challenges completed throughout their history using the app.
-* Light and dark mode support.
+* Daily Challenge - The user will attempt to complete each new daily challenge each day.
+* Assistance - Based on the most recent information entered, the application will suggest ways to make users happier.
+* Quotes Feed - The application contains a variety of inspirational and motivational quotes. If they like those quotes, users can save them.
+* Statistics - Using the app, users can reflect on the activities, moods, and daily challenges they've completed over time.
+* Support for light and dark modes.
 
 ## Screenshots
 
