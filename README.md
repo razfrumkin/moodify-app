@@ -15,16 +15,16 @@ The purpose of the application is to assist the user's mood and motivate the use
 ## Screenshots
 
 <p>
-<img src="https://i.postimg.cc/J7JZ4gK0/Activities-Chart.png" width=215>
-<img src="https://i.postimg.cc/fyx92tkm/Activity-View.png" width=215>
-<img src="https://i.postimg.cc/gJ22fg4Y/Assistance-View.png" width=215>
-<img src="https://i.postimg.cc/DyPG1X9K/Calendar-View.png" width=215>
+<img src="https://i.postimg.cc/J7JZ4gK0/Activities-Chart.png" width=200>
+<img src="https://i.postimg.cc/fyx92tkm/Activity-View.png" width=200>
+<img src="https://i.postimg.cc/gJ22fg4Y/Assistance-View.png" width=200>
+<img src="https://i.postimg.cc/DyPG1X9K/Calendar-View.png" width=200>
 </p>
 <p>
-<img src="https://i.postimg.cc/rpKt6YK8/HomeView.png" width=215>
-<img src="https://i.postimg.cc/y8fSbz6Q/MoodView.png" width=215>
-<img src="https://i.postimg.cc/6p6vcQK4/New-Entry-View.png" width=215>
-<img src="https://i.postimg.cc/xT2HkRFR/Quotes-View.png" width=215>
+<img src="https://i.postimg.cc/rpKt6YK8/HomeView.png" width=200>
+<img src="https://i.postimg.cc/y8fSbz6Q/MoodView.png" width=200>
+<img src="https://i.postimg.cc/6p6vcQK4/New-Entry-View.png" width=200>
+<img src="https://i.postimg.cc/xT2HkRFR/Quotes-View.png" width=200>
 </p>
 
 ## Requirements
