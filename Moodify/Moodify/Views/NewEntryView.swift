@@ -239,7 +239,7 @@ struct NewEntryView: View {
             mood = 0
             note = ""
         }
-        .navigationTitle("New Activity")
+        .navigationTitle("New Entry")
     }
     
     // this function inserts a new entry in the database

@@ -46,15 +46,17 @@ struct NewActivityView: View {
                             .cornerRadius(10)
                             .lineLimit(1)
                         
+                        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                        
                         // display an error if the title isn't within the character bounds
-                        if title.count < Activity.minimumNameLength || title.count > Activity.maximumNameLength {
+                        if trimmed.count < Activity.minimumNameLength || trimmed.count > Activity.maximumNameLength {
                             Text("Activity title must be within \(Activity.minimumNameLength) to \(Activity.maximumNameLength) characters")
                                 .foregroundColor(.pink)
                                 .padding()
                         }
                         
                         // display an error if the title already exists
-                        if existingActivities.titleExists(title: title) {
+                        if existingActivities.titleExists(title: trimmed) {
                             Text("This activity title already exists.")
                                 .foregroundColor(.pink)
                                 .padding()
@@ -99,13 +101,15 @@ struct NewActivityView: View {
                     .padding()
                     .background(Color.theme.background)
                     
-                    let validInput = title.count >= Activity.minimumNameLength && title.count <= Activity.maximumNameLength && !systemImage.isEmpty && !existingActivities.titleExists(title: title)
+                    let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                    
+                    let validInput = trimmed.count >= Activity.minimumNameLength && trimmed.count <= Activity.maximumNameLength && !systemImage.isEmpty && !existingActivities.titleExists(title: trimmed)
                     VStack {
                         Button(action: {
                             let newActivity = Activity(context: context)
                             
                             newActivity.systemName = systemImage
-                            newActivity.title = title
+                            newActivity.title = trimmed
                             
                             do {
                                 try context.save()
