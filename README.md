@@ -21,7 +21,7 @@
 <p>
 <img src="https://i.postimg.cc/rpKt6YK8/HomeView.png" width=200>
 <img src="https://i.postimg.cc/y8fSbz6Q/MoodView.png" width=200>
-<img src="https://i.postimg.cc/6p6vcQK4/New-Entry-View.png" width=200>
+<img src="https://i.postimg.cc/RVbtygQK/New-Entry-View.png" width=200>
 <img src="https://i.postimg.cc/xT2HkRFR/Quotes-View.png" width=200>
 </p>
 
