@@ -189,8 +189,10 @@ struct NewEntryView: View {
             TextField("Activity title here...", text: $newPossibleActivityTitle)
             
             Button("Proceed") {
-                if newPossibleActivityTitle.count >= Activity.minimumNameLength && newPossibleActivityTitle.count <= Activity.maximumNameLength && !activities.titleExists(title: newPossibleActivityTitle) {
-                    selectedActivityToModify!.title = newPossibleActivityTitle
+                let trimmed = newPossibleActivityTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                if trimmed.count >= Activity.minimumNameLength && trimmed.count <= Activity.maximumNameLength && !activities.titleExists(title: trimmed) {
+                    selectedActivityToModify!.title = trimmed
                     
                     do {
                         try context.save()
