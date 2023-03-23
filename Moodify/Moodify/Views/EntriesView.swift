@@ -98,7 +98,6 @@ struct EntriesView: View {
     @Environment(\.managedObjectContext) private var context // database instance
     @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]) private var entries: FetchedResults<Entry> // load entries data for the database and sort them by their dates
     
-    @State private var isNewEntryViewActive: Bool = false
     @State private var showDetailedEntryView: Bool = false
     @State private var showDeleteEntryDialog: Bool = false
     @State private var selectedEntry: Entry?
