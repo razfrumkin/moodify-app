@@ -28,5 +28,5 @@
 ## Requirements
 
 * Xcode 14.2
-* iOS 16.2
+* Latest iOS version
 * iPhone 13 Pro Max
